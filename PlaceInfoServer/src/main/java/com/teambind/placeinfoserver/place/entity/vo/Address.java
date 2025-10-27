@@ -1,4 +1,4 @@
-package com.teambind.placeinfoserver.place.vo;
+package com.teambind.placeinfoserver.place.entity.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

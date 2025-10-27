@@ -27,29 +27,29 @@ PR이 생성되거나 업데이트되면 변경된 파일 경로를 분석하여
 
 ### 전체 영역 라벨
 
-| 라벨 | 색상 | 매칭 규칙 | 설명 |
-|------|------|-----------|------|
-| `backend` | - | `src/main/java/**` | 백엔드 Java 코드 |
-| `frontend` | #06B6D4 | `src/main/resources/static/**`<br>`src/main/resources/templates/**`<br>`frontend/**`, `client/**` | 프론트엔드 코드 |
+| 라벨         | 색상      | 매칭 규칙                                                                                                        | 설명            |
+|------------|---------|--------------------------------------------------------------------------------------------------------------|---------------|
+| `backend`  | -       | `src/main/java/**`                                                                                           | 백엔드 Java 코드   |
+| `frontend` | #06B6D4 | `src/main/resources/static/**`<br>`src/main/resources/templates/**`<br>`frontend/**`, `client/**`            | 프론트엔드 코드      |
 | `database` | #DC2626 | `src/main/resources/db/**`<br>`src/main/resources/migration/**`<br>`**/*migration*.sql`<br>`**/*schema*.sql` | DB 마이그레이션/스키마 |
-| `docs` | - | `docs/**`<br>`*.md`<br>`README*` | 문서 파일 |
-| `infra` | - | `.github/**`<br>`Dockerfile`<br>`docker-compose*.yml`<br>`k8s/**`, `kubernetes/**` | 인프라/CI/CD |
+| `docs`     | -       | `docs/**`<br>`*.md`<br>`README*`                                                                             | 문서 파일         |
+| `infra`    | -       | `.github/**`<br>`Dockerfile`<br>`docker-compose*.yml`<br>`k8s/**`, `kubernetes/**`                           | 인프라/CI/CD     |
 
 ### 백엔드 레이어 라벨
 
 백엔드 개발자를 위한 세분화된 레이어별 라벨입니다.
 
-| 라벨 | 색상 | 매칭 규칙 | 설명 |
-|------|------|-----------|------|
-| `layer:entity` | #E11D48 | `**/entity/**`<br>`**/domain/**`<br>`**/model/**` | 엔티티/도메인 모델 |
-| `layer:controller` | #3B82F6 | `**/controller/**`<br>`**/api/**` | 컨트롤러/API 엔드포인트 |
-| `layer:dto` | #8B5CF6 | `**/dto/**`<br>`**/request/**`<br>`**/response/**` | DTO/요청-응답 모델 |
-| `layer:repository` | #F59E0B | `**/repository/**`<br>`**/dao/**` | 리포지토리/데이터 접근 |
-| `layer:service` | #10B981 | `**/service/**` | 서비스/비즈니스 로직 |
-| `layer:util` | #6B7280 | `**/util/**`<br>`**/helper/**`<br>`**/common/**` | 유틸리티/헬퍼 함수 |
-| `layer:config` | #EC4899 | `**/config/**`<br>`**/configuration/**` | 설정/Configuration |
-| `layer:test` | #14B8A6 | `src/test/**`<br>`**/*Test.java`<br>`**/*Tests.java` | 테스트 코드 |
-| `layer:resource` | #A855F7 | `src/main/resources/**/*.yml`<br>`src/main/resources/**/*.properties`<br>`src/main/resources/**/*.xml`<br>`src/main/resources/**/*.json` | 리소스 파일 |
+| 라벨                 | 색상      | 매칭 규칙                                                                                                                                    | 설명               |
+|--------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| `layer:entity`     | #E11D48 | `**/entity/**`<br>`**/domain/**`<br>`**/model/**`                                                                                        | 엔티티/도메인 모델       |
+| `layer:controller` | #3B82F6 | `**/controller/**`<br>`**/api/**`                                                                                                        | 컨트롤러/API 엔드포인트   |
+| `layer:dto`        | #8B5CF6 | `**/dto/**`<br>`**/request/**`<br>`**/response/**`                                                                                       | DTO/요청-응답 모델     |
+| `layer:repository` | #F59E0B | `**/repository/**`<br>`**/dao/**`                                                                                                        | 리포지토리/데이터 접근     |
+| `layer:service`    | #10B981 | `**/service/**`                                                                                                                          | 서비스/비즈니스 로직      |
+| `layer:util`       | #6B7280 | `**/util/**`<br>`**/helper/**`<br>`**/common/**`                                                                                         | 유틸리티/헬퍼 함수       |
+| `layer:config`     | #EC4899 | `**/config/**`<br>`**/configuration/**`                                                                                                  | 설정/Configuration |
+| `layer:test`       | #14B8A6 | `src/test/**`<br>`**/*Test.java`<br>`**/*Tests.java`                                                                                     | 테스트 코드           |
+| `layer:resource`   | #A855F7 | `src/main/resources/**/*.yml`<br>`src/main/resources/**/*.properties`<br>`src/main/resources/**/*.xml`<br>`src/main/resources/**/*.json` | 리소스 파일           |
 
 ### 라벨링 예시
 
@@ -76,13 +76,13 @@ PR이 생성되거나 업데이트되면 변경된 파일 경로를 분석하여
 
 ### 이슈 타입
 
-| 타입 | 라벨 | 용도 | 소요 시간 |
-|------|------|------|----------|
-| **Epic** | `epic` | 큰 기능 (여러 Story로 구성) | 1~2주 이상 |
-| **Story** | `story` | 사용자 관점의 완결된 기능 | 2~5일 |
-| **Task** | `task` | 실제 개발 작업 단위 | 반나절~1일 |
-| **Spike** | `spike` | 조사/실험 (시간 제한) | 설정한 타임박스 |
-| **Change Request** | `change-request` | 설계/AC 변경 제안 | - |
+| 타입                 | 라벨               | 용도                  | 소요 시간    |
+|--------------------|------------------|---------------------|----------|
+| **Epic**           | `epic`           | 큰 기능 (여러 Story로 구성) | 1~2주 이상  |
+| **Story**          | `story`          | 사용자 관점의 완결된 기능      | 2~5일     |
+| **Task**           | `task`           | 실제 개발 작업 단위         | 반나절~1일   |
+| **Spike**          | `spike`          | 조사/실험 (시간 제한)       | 설정한 타임박스 |
+| **Change Request** | `change-request` | 설계/AC 변경 제안         | -        |
 
 ### 이슈 계층 구조
 
@@ -112,6 +112,7 @@ Resolves #67
 ```
 
 **작동 방식:**
+
 - PR이 `develop` 또는 `main` 브랜치에 머지되면
 - `auto-close-issues.yml` 워크플로우가 실행되어
 - 본문에서 `Closes #N` 패턴을 찾아서
@@ -146,9 +147,9 @@ git push
 ### 처음 시작하기
 
 1. **이슈 생성**
-   - GitHub Issues 탭 → New Issue
-   - 템플릿 선택 (Epic/Story/Task/Spike/Change Request)
-   - 필수 항목 작성 후 제출
+	- GitHub Issues 탭 → New Issue
+	- 템플릿 선택 (Epic/Story/Task/Spike/Change Request)
+	- 필수 항목 작성 후 제출
 
 2. **작업 시작**
    ```bash
@@ -160,14 +161,14 @@ git push
    ```
 
 3. **PR 생성**
-   - Claude Code 사용: "PR 만들어줘"
-   - 또는 수동: GitHub에서 New Pull Request
-   - PR 본문에 `Closes #이슈번호` 포함
+	- Claude Code 사용: "PR 만들어줘"
+	- 또는 수동: GitHub에서 New Pull Request
+	- PR 본문에 `Closes #이슈번호` 포함
 
 4. **코드 리뷰 & 머지**
-   - 리뷰어가 승인
-   - PR 머지
-   - 연결된 이슈 자동으로 닫힘 ✅
+	- 리뷰어가 승인
+	- PR 머지
+	- 연결된 이슈 자동으로 닫힘 ✅
 
 ### 일반적인 워크플로우
 
@@ -192,19 +193,22 @@ git push
 ## 🔧 설정 파일
 
 ### 워크플로우
+
 - `.github/workflows/auto-label.yml` - 자동 라벨링
 - `.github/workflows/auto-close-issues.yml` - 이슈 자동 닫기
 
 ### 설정 파일
+
 - `.github/labeler.yml` - 라벨 매칭 규칙
 - `.github/ISSUE_TEMPLATE/` - 이슈 템플릿들
-  - `epic.yml`
-  - `story.yml`
-  - `task.yml`
-  - `spike.yml`
-  - `change_request.yml`
+	- `epic.yml`
+	- `story.yml`
+	- `task.yml`
+	- `spike.yml`
+	- `change_request.yml`
 
 ### 문서
+
 - `PROJECT_SETUP.md` - AI 어시스턴트를 위한 프로젝트 설정 가이드
 - `ISSUE_GUIDE.md` - 이슈 작성 상세 가이드
 
@@ -213,19 +217,19 @@ git push
 ## 💡 팁
 
 1. **라벨 커스터마이징**
-   - `.github/labeler.yml` 수정하여 라벨 규칙 추가/변경 가능
+	- `.github/labeler.yml` 수정하여 라벨 규칙 추가/변경 가능
 
 2. **이슈 연결**
-   - Task는 항상 Story나 Epic과 연결
-   - 추적성을 위해 `#이슈번호` 형식으로 참조
+	- Task는 항상 Story나 Epic과 연결
+	- 추적성을 위해 `#이슈번호` 형식으로 참조
 
 3. **커밋 메시지**
-   - 명확하게 작성하면 AI가 관련 이슈를 더 잘 찾음
-   - 예: "로그인 API 구현" > "코드 수정"
+	- 명확하게 작성하면 AI가 관련 이슈를 더 잘 찾음
+	- 예: "로그인 API 구현" > "코드 수정"
 
 4. **브랜치 네이밍**
-   - `feature/기능명` 형식 권장
-   - 예: `feature/user-login`, `feature/board-api`
+	- `feature/기능명` 형식 권장
+	- 예: `feature/user-login`, `feature/board-api`
 
 ---
 

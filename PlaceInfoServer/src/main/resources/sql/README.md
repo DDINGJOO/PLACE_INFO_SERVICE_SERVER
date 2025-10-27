@@ -12,6 +12,7 @@
 ## 테이블 목록
 
 ### Place Domain
+
 - `place_info` - 업체 기본 정보
 - `place_locations` - 업체 위치 정보
 - `place_contacts` - 업체 연락처 정보
@@ -23,6 +24,7 @@
 - `place_keywords` - 업체-키워드 매핑 (다대다)
 
 ### Room Domain
+
 - `rooms` - 방 기본 정보
 - `room_images` - 방 이미지
 - `room_keywords` - 방-키워드 매핑 (다대다)
@@ -60,17 +62,21 @@ spring:
 ## 주요 기능
 
 ### 지리 데이터 지원
+
 - PostgreSQL + PostGIS 사용시 `place_locations` 테이블의 `coordinates` 컬럼으로 위치 기반 검색 가능
 
 ### 자동 업데이트 트리거
+
 - 모든 테이블의 `updated_at` 컬럼은 자동으로 업데이트됨
 
 ### 뷰 (View)
+
 - `v_place_full_info` - 업체 전체 정보 조회
 - `v_room_full_info` - 방 전체 정보 조회
 - `v_place_room_summary` - 업체별 방 요약 정보
 
 ### 유틸리티 함수
+
 - `reorder_room_images()` - 방 이미지 순서 재정렬
 - `reorder_place_rooms()` - 업체 내 방 순서 재정렬
 - `cleanup_inactive_data()` - 오래된 비활성 데이터 정리

@@ -1,7 +1,7 @@
 name: Change Request
 description: 설계/AC 변경 제안
 title: "[CR] 제목"
-labels: ["change-request"]
+labels: [ "change-request" ]
 body:
   - type: input
     id: related

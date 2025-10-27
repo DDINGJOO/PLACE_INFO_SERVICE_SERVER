@@ -16,24 +16,23 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlaceImage {
-
-    @Id
-    private String id; // 이미지 서버에서 오는 이미지 Id
-
-    /**
-     * 업체 정보 (다대일 관계)
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", nullable = false)
-    private PlaceInfo placeInfo;
-
-    /**
-     * 이미지 URL 또는 외부 서비스의 이미지 ID
-     * 마이크로서비스 아키텍처에서 이미지 서비스와 연동
-     */
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
-
-
-
+	
+	@Id
+	private String id; // 이미지 서버에서 오는 이미지 Id
+	
+	/**
+	 * 업체 정보 (다대일 관계)
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "place_id", nullable = false)
+	private PlaceInfo placeInfo;
+	
+	/**
+	 * 이미지 URL 또는 외부 서비스의 이미지 ID
+	 * 마이크로서비스 아키텍처에서 이미지 서비스와 연동
+	 */
+	@Column(name = "image_url", nullable = false)
+	private String imageUrl;
+	
+	
 }

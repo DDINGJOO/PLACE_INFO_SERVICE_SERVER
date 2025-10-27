@@ -1,7 +1,7 @@
 name: Story
 description: 사용자 시나리오와 수용 기준
 title: "[STORY] 제목"
-labels: ["story"]
+labels: [ "story" ]
 body:
   - type: textarea
     id: background

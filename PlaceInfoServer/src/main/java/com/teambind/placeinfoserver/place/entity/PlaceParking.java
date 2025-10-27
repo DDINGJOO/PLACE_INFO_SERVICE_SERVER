@@ -20,81 +20,81 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlaceParking {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /**
-     * 소속 업체 (일대일 관계)
-     */
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", nullable = false, unique = true)
-    private PlaceInfo placeInfo;
-
-    /**
-     * 주차 가능 여부
-     */
-    @Column(name = "available", nullable = false)
-    @Builder.Default
-    private Boolean available = false;
-
-    /**
-     * 주차 타입 (무료/유료)
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "parking_type")
-    private ParkingType parkingType;
-
-    /**
-     * 주차 가능 대수
-     */
-    @Column(name = "capacity")
-    private Integer capacity;
 	
-
-    /**
-     * 주차 관련 상세 설명 (최대 500자)
-     * 예: "건물 지하 1층, 2시간 무료 주차 가능"
-     */
-    @Column(name = "description", length = 500)
-    private String description;
-
- 
-    /**
-     * 생성일시
-     */
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    /**
-     * 수정일시
-     */
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    /**
-     * 주차 가능 설정
-     */
-    public void enableParking(ParkingType type) {
-        this.available = true;
-        this.parkingType = type;
-    }
-
-    /**
-     * 주차 불가 설정
-     */
-    public void disableParking() {
-        this.available = false;
-        this.parkingType = null;
-    }
-
-    /**
-     * 무료 주차 여부
-     */
-    public boolean isFreeParking() {
-        return available && parkingType == ParkingType.FREE;
-    }
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	/**
+	 * 소속 업체 (일대일 관계)
+	 */
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "place_id", nullable = false, unique = true)
+	private PlaceInfo placeInfo;
+	
+	/**
+	 * 주차 가능 여부
+	 */
+	@Column(name = "available", nullable = false)
+	@Builder.Default
+	private Boolean available = false;
+	
+	/**
+	 * 주차 타입 (무료/유료)
+	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "parking_type")
+	private ParkingType parkingType;
+	
+	/**
+	 * 주차 가능 대수
+	 */
+	@Column(name = "capacity")
+	private Integer capacity;
+	
+	
+	/**
+	 * 주차 관련 상세 설명 (최대 500자)
+	 * 예: "건물 지하 1층, 2시간 무료 주차 가능"
+	 */
+	@Column(name = "description", length = 500)
+	private String description;
+	
+	
+	/**
+	 * 생성일시
+	 */
+	@CreationTimestamp
+	@Column(name = "created_at", updatable = false)
+	private LocalDateTime createdAt;
+	
+	/**
+	 * 수정일시
+	 */
+	@UpdateTimestamp
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+	
+	/**
+	 * 주차 가능 설정
+	 */
+	public void enableParking(ParkingType type) {
+		this.available = true;
+		this.parkingType = type;
+	}
+	
+	/**
+	 * 주차 불가 설정
+	 */
+	public void disableParking() {
+		this.available = false;
+		this.parkingType = null;
+	}
+	
+	/**
+	 * 무료 주차 여부
+	 */
+	public boolean isFreeParking() {
+		return available && parkingType == ParkingType.FREE;
+	}
 }

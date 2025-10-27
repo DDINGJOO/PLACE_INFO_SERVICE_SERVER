@@ -1,7 +1,7 @@
 name: Task
 description: 개발/테스트/데브옵스 단위 작업
 title: "[TASK] 제목"
-labels: ["task"]
+labels: [ "task" ]
 body:
   - type: input
     id: parent

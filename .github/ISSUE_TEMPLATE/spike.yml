@@ -1,7 +1,7 @@
 name: Spike
 description: 조사/실험(시간 제한)
 title: "[SPIKE] 제목"
-labels: ["spike"]
+labels: [ "spike" ]
 body:
   - type: input
     id: timebox

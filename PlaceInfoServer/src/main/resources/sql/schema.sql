@@ -18,7 +18,8 @@
 -- =============================================
 -- INCLUDE: Place Domain Schema
 -- =============================================
-\i schema-place.sql
+\i
+schema-place.sql
 
 
 -- =============================================
@@ -27,12 +28,10 @@
 
 -- 복합 인덱스: 자주 함께 조회되는 컬럼들
 CREATE INDEX IF NOT EXISTS idx_place_info_active_approved
-    ON place_info(is_active, approval_status)
-    WHERE is_active = true AND approval_status = 'APPROVED';
+    ON place_info (is_active, approval_status) WHERE is_active = true AND approval_status = 'APPROVED';
 
 CREATE INDEX IF NOT EXISTS idx_rooms_place_active_available
-    ON rooms(place_id, is_active, status)
-    WHERE is_active = true AND status = 'AVAILABLE';
+    ON rooms (place_id, is_active, status) WHERE is_active = true AND status = 'AVAILABLE';
 
 -- 텍스트 검색을 위한 인덱스 (PostgreSQL 전용)
 CREATE INDEX IF NOT EXISTS idx_place_info_name_gin
@@ -50,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_rooms_name_gin
 
 -- 업체별 통계 업데이트 함수
 CREATE OR REPLACE FUNCTION update_place_statistics()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS $$
 BEGIN
     -- 방 추가/삭제시 업체 통계 업데이트
     IF TG_OP = 'INSERT' OR TG_OP = 'DELETE' THEN
@@ -60,12 +59,13 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 -- 통계 업데이트 트리거
 CREATE TRIGGER trigger_update_place_statistics
-AFTER INSERT OR DELETE ON rooms
-FOR EACH ROW
+    AFTER INSERT OR DELETE ON rooms
+    FOR EACH ROW
 EXECUTE FUNCTION update_place_statistics();
 
 -- =============================================
@@ -76,7 +76,7 @@ EXECUTE FUNCTION update_place_statistics();
 CREATE OR REPLACE PROCEDURE cleanup_inactive_data(
     p_days_old INTEGER DEFAULT 365
 )
-LANGUAGE plpgsql
+    LANGUAGE plpgsql
 AS $$
 DECLARE
     v_cutoff_date TIMESTAMP;
@@ -86,15 +86,17 @@ BEGIN
     v_cutoff_date := CURRENT_TIMESTAMP - INTERVAL '1 day' * p_days_old;
 
     -- 오래된 비활성 방 삭제
-    DELETE FROM rooms
+    DELETE
+    FROM rooms
     WHERE is_active = false
-    AND updated_at < v_cutoff_date;
+      AND updated_at < v_cutoff_date;
     GET DIAGNOSTICS v_deleted_rooms = ROW_COUNT;
 
     -- 오래된 거부된 업체 삭제
-    DELETE FROM place_info
+    DELETE
+    FROM place_info
     WHERE approval_status = 'REJECTED'
-    AND updated_at < v_cutoff_date;
+      AND updated_at < v_cutoff_date;
     GET DIAGNOSTICS v_deleted_places = ROW_COUNT;
 
     RAISE NOTICE 'Cleanup completed. Deleted % places and % rooms',
@@ -114,13 +116,15 @@ $$;
 -- 초기 데이터 로드
 -- =============================================
 -- 키워드 초기 데이터 로드
-\i data-keywords.sql
+\i
+data-keywords.sql
 
 -- =============================================
 -- 스키마 버전 관리 테이블
 -- =============================================
-CREATE TABLE IF NOT EXISTS schema_version (
-    version VARCHAR(20) PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS schema_version
+(
+    version    VARCHAR(20) PRIMARY KEY,
     description VARCHAR(200),
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -128,7 +132,9 @@ CREATE TABLE IF NOT EXISTS schema_version (
 -- 현재 버전 기록
 INSERT INTO schema_version (version, description)
 VALUES ('1.0.0', 'Initial schema for Place Info Service')
-ON CONFLICT (version) DO NOTHING;
+ON CONFLICT
+    (version)
+DO NOTHING;
 
 -- =============================================
 -- 완료 메시지

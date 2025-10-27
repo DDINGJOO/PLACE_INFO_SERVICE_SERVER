@@ -1,7 +1,7 @@
 name: Epic
 description: 큰 기능(여러 Story로 쪼개질 수 있음)
 title: "[EPIC] 제목"
-labels: ["epic"]
+labels: [ "epic" ]
 body:
   - type: textarea
     id: goal

@@ -3,7 +3,9 @@ package com.teambind.placeinfoserver.place.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,9 +22,13 @@ import java.util.Set;
  * - 이미지: PlaceImage (1:N)
  * <p>
  * Room은 별도 Aggregate Root로 분리 (placeId로 참조)
+ * <p>
+ * 소프트 삭제 적용: 삭제 시 실제 삭제 대신 deleted_at 업데이트
  */
 @Entity
 @Table(name = "place_info")
+@SQLDelete(sql = "UPDATE place_info SET deleted_at = NOW(), deleted_by = ? WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
 @Getter
 @Setter
 @Builder
@@ -150,33 +156,54 @@ public class PlaceInfo {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
-	
+
+	/**
+	 * 삭제일시 (소프트 삭제)
+	 */
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
+	/**
+	 * 삭제한 사용자 ID (소프트 삭제)
+	 */
+	@Column(name = "deleted_by", length = 100)
+	private String deletedBy;
+
 	// ========== Aggregate 내부 비즈니스 로직 ==========
 	
 	/**
 	 * 연락처 정보 설정
 	 */
 	public void setContact(PlaceContact contact) {
+		if (this.contact != null) {
+			this.contact.setPlaceInfo(null);
+		}
 		this.contact = contact;
 		if (contact != null) {
 			contact.setPlaceInfo(this);
 		}
 	}
-	
+
 	/**
 	 * 위치 정보 설정
 	 */
 	public void setLocation(PlaceLocation location) {
+		if (this.location != null) {
+			this.location.setPlaceInfo(null);
+		}
 		this.location = location;
 		if (location != null) {
 			location.setPlaceInfo(this);
 		}
 	}
-	
+
 	/**
 	 * 주차 정보 설정
 	 */
 	public void setParking(PlaceParking parking) {
+		if (this.parking != null) {
+			this.parking.setPlaceInfo(null);
+		}
 		this.parking = parking;
 		if (parking != null) {
 			parking.setPlaceInfo(this);
@@ -263,5 +290,31 @@ public class PlaceInfo {
 				&& !placeName.isBlank()
 				&& location != null
 				&& contact != null;
+	}
+
+	/**
+	 * 소프트 삭제
+	 * @param deletedBy 삭제한 사용자 ID
+	 */
+	public void softDelete(String deletedBy) {
+		this.deletedAt = LocalDateTime.now();
+		this.deletedBy = deletedBy;
+		this.isActive = false;
+	}
+
+	/**
+	 * 삭제 취소 (복구)
+	 */
+	public void restore() {
+		this.deletedAt = null;
+		this.deletedBy = null;
+		this.isActive = true;
+	}
+
+	/**
+	 * 삭제 여부 확인
+	 */
+	public boolean isDeleted() {
+		return this.deletedAt != null;
 	}
 }

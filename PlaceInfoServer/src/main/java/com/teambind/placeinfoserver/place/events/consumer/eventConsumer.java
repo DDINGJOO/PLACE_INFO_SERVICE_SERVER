@@ -2,7 +2,7 @@ package com.teambind.placeinfoserver.place.events.consumer;
 
 import com.teambind.placeinfoserver.place.common.util.json.JsonUtil;
 import com.teambind.placeinfoserver.place.events.event.ImagesChangeEventWrapper;
-import com.teambind.placeinfoserver.place.service.cud.PlaceImageUpdateService;
+import com.teambind.placeinfoserver.place.service.cmmand.PlaceImageUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

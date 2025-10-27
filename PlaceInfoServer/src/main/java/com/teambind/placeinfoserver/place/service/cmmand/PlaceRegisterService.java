@@ -1,4 +1,4 @@
-package com.teambind.placeinfoserver.place.service.cud;
+package com.teambind.placeinfoserver.place.service.cmmand;
 
 import com.teambind.placeinfoserver.place.common.exception.CustomException;
 import com.teambind.placeinfoserver.place.common.exception.ErrorCode;

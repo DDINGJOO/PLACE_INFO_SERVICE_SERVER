@@ -1,4 +1,4 @@
-package com.teambind.placeinfoserver.place.service;
+package com.teambind.placeinfoserver.place.service.cud;
 
 import com.teambind.placeinfoserver.place.common.exception.CustomException;
 import com.teambind.placeinfoserver.place.common.exception.ErrorCode;
@@ -63,19 +63,6 @@ public class PlaceRegisterService {
 		return placeMapper.toResponse(placeInfo);
 	}
 	
-	/**
-	 * 업체 조회
-	 *
-	 * @param placeId 업체 ID
-	 * @return 업체 정보
-	 */
-	@Transactional(readOnly = true)
-	public PlaceInfoResponse getPlace(String placeId) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
-		
-		return placeMapper.toResponse(placeInfo);
-	}
 	
 	/**
 	 * 업체 삭제 (소프트 삭제)

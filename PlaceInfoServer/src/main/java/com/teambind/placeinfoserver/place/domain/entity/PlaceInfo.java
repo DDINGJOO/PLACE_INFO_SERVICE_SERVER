@@ -229,6 +229,15 @@ public class PlaceInfo extends BaseEntity {
 		image.setPlaceInfo(null);
 	}
 	
+	public void removeAllImage() {
+		var images = this.images;
+		for (PlaceImage image : images) {
+			this.images.remove(image);
+			image.setPlaceInfo(null);
+		}
+		this.images = new ArrayList<>();
+	}
+	
 	/**
 	 * 업체 활성화
 	 */

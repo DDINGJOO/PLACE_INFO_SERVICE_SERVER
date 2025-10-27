@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.repository;
 
-import com.teambind.placeinfoserver.place.entity.ApprovalStatus;
-import com.teambind.placeinfoserver.place.entity.PlaceInfo;
+import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
+import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +15,7 @@ import java.util.Optional;
  * 엔티티 구조에 맞게 수정됨
  */
 @Repository
-public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, Long> {
+public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, String> {
 	
 	/**
 	 * 유저 ID로 업체 목록 조회

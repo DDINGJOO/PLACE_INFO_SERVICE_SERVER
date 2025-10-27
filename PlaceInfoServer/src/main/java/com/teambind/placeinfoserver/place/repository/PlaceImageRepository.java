@@ -1,6 +1,6 @@
 package com.teambind.placeinfoserver.place.repository;
 
-import com.teambind.placeinfoserver.place.entity.PlaceImage;
+import com.teambind.placeinfoserver.place.domain.entity.PlaceImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

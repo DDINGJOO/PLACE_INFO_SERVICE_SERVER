@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.repository;
 
-import com.teambind.placeinfoserver.place.entity.Keyword;
-import com.teambind.placeinfoserver.place.entity.KeywordType;
+import com.teambind.placeinfoserver.place.domain.entity.Keyword;
+import com.teambind.placeinfoserver.place.domain.enums.KeywordType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.repository;
 
-import com.teambind.placeinfoserver.place.entity.ParkingType;
-import com.teambind.placeinfoserver.place.entity.PlaceParking;
+import com.teambind.placeinfoserver.place.domain.entity.PlaceParking;
+import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

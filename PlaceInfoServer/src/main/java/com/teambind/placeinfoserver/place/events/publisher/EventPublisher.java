@@ -1,8 +1,8 @@
 package com.teambind.placeinfoserver.place.events.publisher;
 
 
+import com.teambind.placeinfoserver.place.common.util.json.JsonUtil;
 import com.teambind.placeinfoserver.place.events.event.Event;
-import com.teambind.placeinfoserver.place.utils.utils.json.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.entity;
 
+import com.teambind.placeinfoserver.place.entity.vo.Address;
 import com.teambind.placeinfoserver.place.utils.geometry.GeometryUtil;
-import com.teambind.placeinfoserver.place.vo.Address;
 import jakarta.persistence.*;
 import lombok.*;
 import org.locationtech.jts.geom.Point;

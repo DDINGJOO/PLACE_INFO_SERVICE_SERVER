@@ -2,10 +2,7 @@ package com.teambind.placeinfoserver.place.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +18,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceContact {
+public class PlaceContact extends BaseEntity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -72,21 +69,7 @@ public class PlaceContact {
 	 */
 	@Column(name = "email", length = 100)
 	private String email;
-	
-	/**
-	 * 생성일시
-	 */
-	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private LocalDateTime createdAt;
-	
-	/**
-	 * 수정일시
-	 */
-	@UpdateTimestamp
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
-	
+
 	/**
 	 * 홈페이지 URL 추가
 	 */

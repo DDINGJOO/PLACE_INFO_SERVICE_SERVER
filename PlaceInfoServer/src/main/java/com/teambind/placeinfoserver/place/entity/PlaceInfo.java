@@ -2,9 +2,7 @@ package com.teambind.placeinfoserver.place.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
@@ -34,7 +32,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceInfo {
+public class PlaceInfo extends BaseEntity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -142,20 +140,6 @@ public class PlaceInfo {
 	@Column(name = "review_count")
 	@Builder.Default
 	private Integer reviewCount = 0;
-	
-	/**
-	 * 생성일시
-	 */
-	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private LocalDateTime createdAt;
-	
-	/**
-	 * 수정일시
-	 */
-	@UpdateTimestamp
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
 
 	/**
 	 * 삭제일시 (소프트 삭제)
@@ -316,5 +300,45 @@ public class PlaceInfo {
 	 */
 	public boolean isDeleted() {
 		return this.deletedAt != null;
+	}
+
+	/**
+	 * 업체명 변경
+	 *
+	 * @param newName 새로운 업체명
+	 * @throws IllegalArgumentException 업체명이 비어있는 경우
+	 */
+	public void updatePlaceName(String newName) {
+		if (newName == null || newName.isBlank()) {
+			throw new IllegalArgumentException("업체명은 필수입니다.");
+		}
+		this.placeName = newName;
+	}
+
+	/**
+	 * 소개글 변경
+	 *
+	 * @param newDescription 새로운 소개글
+	 */
+	public void updateDescription(String newDescription) {
+		this.description = newDescription;
+	}
+
+	/**
+	 * 카테고리 변경
+	 *
+	 * @param newCategory 새로운 카테고리
+	 */
+	public void updateCategory(String newCategory) {
+		this.category = newCategory;
+	}
+
+	/**
+	 * 업체 유형 변경
+	 *
+	 * @param newType 새로운 업체 유형
+	 */
+	public void updatePlaceType(String newType) {
+		this.placeType = newType;
 	}
 }

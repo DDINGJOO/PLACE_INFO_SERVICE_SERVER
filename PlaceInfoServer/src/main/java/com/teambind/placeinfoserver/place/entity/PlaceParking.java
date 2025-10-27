@@ -2,10 +2,6 @@ package com.teambind.placeinfoserver.place.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 /**
  * 업체 주차 정보 엔티티
@@ -19,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceParking {
+public class PlaceParking extends BaseEntity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,22 +55,7 @@ public class PlaceParking {
 	 */
 	@Column(name = "description", length = 500)
 	private String description;
-	
-	
-	/**
-	 * 생성일시
-	 */
-	@CreationTimestamp
-	@Column(name = "created_at", updatable = false)
-	private LocalDateTime createdAt;
-	
-	/**
-	 * 수정일시
-	 */
-	@UpdateTimestamp
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
-	
+
 	/**
 	 * 주차 가능 설정
 	 */

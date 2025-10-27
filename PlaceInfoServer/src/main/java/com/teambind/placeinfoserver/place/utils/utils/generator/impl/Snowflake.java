@@ -1,6 +1,6 @@
 package com.teambind.placeinfoserver.place.utils.utils.generator.impl;
 
-import com.teambind.profileserver.utils.generator.PrimaryKeyGenerator;
+import com.teambind.placeinfoserver.place.utils.utils.generator.PrimaryKeyGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

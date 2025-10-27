@@ -1,5 +1,6 @@
 package com.teambind.placeinfoserver.place.entity;
 
+import com.teambind.placeinfoserver.place.utils.geometry.GeometryUtil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -122,10 +123,14 @@ public class PlaceLocation {
 	
 	/**
 	 * 위도/경도로 좌표 설정
+	 *
+	 * @param latitude  위도 (-90 ~ 90)
+	 * @param longitude 경도 (-180 ~ 180)
+	 * @throws IllegalArgumentException 위도/경도 범위가 유효하지 않은 경우
 	 */
 	public void setLatLng(double latitude, double longitude) {
 		this.latitude = latitude;
 		this.longitude = longitude;
-		// Point 객체는 별도로 생성해서 설정 필요
+		this.coordinates = GeometryUtil.createPoint(latitude, longitude);
 	}
 }

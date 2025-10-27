@@ -3,9 +3,6 @@ package com.teambind.placeinfoserver.place.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * 키워드 마스터 데이터 엔티티
  * 업체가 선택할 수 있는 키워드를 미리 정의
@@ -55,14 +52,7 @@ public class Keyword {
 	@Column(name = "is_active")
 	@Builder.Default
 	private Boolean isActive = true;
-	
-	/**
-	 * 이 키워드를 사용하는 업체들 (다대다 관계)
-	 */
-	@ManyToMany(mappedBy = "keywords")
-	@Builder.Default
-	private Set<PlaceInfo> places = new HashSet<>();
-	
+
 	/**
 	 * 편의 메서드: 키워드 타입과 이름을 조합한 전체 이름 반환
 	 */

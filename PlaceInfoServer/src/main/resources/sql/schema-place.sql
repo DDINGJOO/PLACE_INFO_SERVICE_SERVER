@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS place_info
     rating_average  DOUBLE PRECISION,
     review_count    INTEGER               DEFAULT 0,
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at      TIMESTAMP,
+    deleted_by      VARCHAR(100)
 );
 
 -- 인덱스 생성
@@ -43,6 +45,7 @@ CREATE INDEX idx_place_info_approval_status ON place_info (approval_status);
 CREATE INDEX idx_place_info_is_active ON place_info (is_active);
 CREATE INDEX idx_place_info_category ON place_info (category);
 CREATE INDEX idx_place_info_place_type ON place_info (place_type);
+CREATE INDEX idx_place_info_deleted_at ON place_info (deleted_at);
 
 -- =============================================
 -- 2. 업체 위치 정보 테이블

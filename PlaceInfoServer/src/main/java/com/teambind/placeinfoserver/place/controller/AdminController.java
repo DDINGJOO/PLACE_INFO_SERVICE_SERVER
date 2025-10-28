@@ -13,7 +13,7 @@ public class AdminController {
 	private final PlaceRegisterService infoService;
 	
 	@PatchMapping("/{placeId}")
-	public ResponseEntity<Void> approve(@RequestParam String type, @RequestParam boolean contents, @PathParam(value = "placeId") String placeId) {
+	public ResponseEntity<Void> approve(@RequestParam String type, @RequestParam boolean contents, @PathVariable(value = "placeId") String placeId) {
 		if (type.equalsIgnoreCase("approve")) {
 			if (contents) {
 				infoService.approvePlace(placeId);
@@ -22,8 +22,10 @@ public class AdminController {
 				infoService.rejectPlace(placeId);
 			}
 		}
+		
 		return ResponseEntity.badRequest().build();
 	}
+	
 	
 	@DeleteMapping("/{placeId}")
 	public ResponseEntity<Void> delete(@PathParam(value = "placeId") String placeId) {

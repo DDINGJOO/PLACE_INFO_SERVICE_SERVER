@@ -185,12 +185,15 @@ public class PlaceMapper {
 				.description(request.getDescription())
 				.category(request.getCategory())
 				.placeType(request.getPlaceType())
-				.isActive(false)
 				.build();
 		
 		// 연관관계 설정
 		if (request.getContact() != null) {
 			placeInfo.setContact(toContactEntity(request.getContact(), placeInfo));
+		}
+		
+		if (request.getLocation() != null) {
+			placeInfo.setLocation(toLocationEntity(request.getLocation(), placeInfo));
 		}
 		
 		if (request.getParking() != null) {

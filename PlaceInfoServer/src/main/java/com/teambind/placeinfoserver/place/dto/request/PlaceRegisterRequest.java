@@ -18,5 +18,6 @@ public class PlaceRegisterRequest {
 	private String placeType;
 	
 	private PlaceContactRequest contact;
+	private PlaceLocationRequest location;
 	private PlaceParkingUpdateRequest parking;
 }

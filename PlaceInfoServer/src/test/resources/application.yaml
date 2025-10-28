@@ -5,11 +5,8 @@ spring:
   profiles:
     active: test
 
-  datasource:
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+  main:
+    allow-bean-definition-overriding: true
 
   jpa:
     show-sql: false
@@ -18,7 +15,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect
+    defer-datasource-initialization: false
 
   kafka:
     bootstrap-servers: localhost:9092

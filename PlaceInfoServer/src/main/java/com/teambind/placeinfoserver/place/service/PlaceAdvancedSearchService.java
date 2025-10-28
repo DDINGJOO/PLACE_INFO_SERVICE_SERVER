@@ -87,6 +87,9 @@ public class PlaceAdvancedSearchService {
 			throw new IllegalArgumentException("위치 정보가 필요합니다");
 		}
 		
+		// 유효성 검증
+		validateRequest(request);
+		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(),
 				request.getLongitude(),
@@ -135,6 +138,8 @@ public class PlaceAdvancedSearchService {
 				.district(district)
 				.cursor(cursor)
 				.size(size != null ? size : 20)
+				.isActive(true)
+				.approvalStatus("APPROVED")
 				.build();
 		
 		log.info("지역 검색: {}/{}/{}", province, city, district);
@@ -151,7 +156,7 @@ public class PlaceAdvancedSearchService {
 	 */
 	@Cacheable(
 			value = "popularPlaces",
-			key = "#size",
+			key = "#size != null ? #size : 10",
 			unless = "#result.items.isEmpty()"
 	)
 	public PlaceSearchResponse getPopularPlaces(Integer size) {
@@ -159,6 +164,8 @@ public class PlaceAdvancedSearchService {
 				.sortBy(PlaceSearchRequest.SortBy.RATING)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
 				.size(size != null ? size : 10)
+				.isActive(true)
+				.approvalStatus("APPROVED")
 				.build();
 		
 		log.info("인기 장소 조회: {} 건", request.getSize());
@@ -177,6 +184,8 @@ public class PlaceAdvancedSearchService {
 				.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
 				.size(size != null ? size : 10)
+				.isActive(true)
+				.approvalStatus("APPROVED")
 				.build();
 		
 		log.info("최신 장소 조회: {} 건", request.getSize());

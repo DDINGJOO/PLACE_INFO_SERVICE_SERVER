@@ -83,8 +83,12 @@ mapper/
   "contact": {
     "contact": "02-1234-5678",
     "email": "contact@example.com",
-    "websites": ["https://example.com"],
-    "socialLinks": ["https://instagram.com/example"]
+    "websites": [
+      "https://example.com"
+    ],
+    "socialLinks": [
+      "https://instagram.com/example"
+    ]
   },
   "location": {
     "address": {

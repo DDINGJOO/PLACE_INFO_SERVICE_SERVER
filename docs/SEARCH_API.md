@@ -69,7 +69,11 @@ GET /api/v1/places/search
       "parkingAvailable": true,
       "parkingType": "PAID",
       "thumbnailUrl": "https://images.example.com/thumb.jpg",
-      "keywords": ["합주실", "녹음실", "주차 가능"],
+      "keywords": [
+        "합주실",
+        "녹음실",
+        "주차 가능"
+      ],
       "contact": "0212345678",
       "isActive": true,
       "approvalStatus": "APPROVED"
@@ -105,7 +109,11 @@ POST /api/v1/places/search/location
   "longitude": 126.9780,
   "radius": 3000,
   "keyword": "합주실",
-  "keywordIds": [1, 2, 3],
+  "keywordIds": [
+    1,
+    2,
+    3
+  ],
   "parkingAvailable": true,
   "cursor": null,
   "size": 20
@@ -251,30 +259,30 @@ curl "http://localhost:8080/api/v1/places/search?keyword=합주실&size=20&curso
 ```typescript
 // 위치 기반 검색
 const searchByLocation = async (lat: number, lng: number, radius: number) => {
-  const response = await fetch('/api/v1/places/search/location', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      latitude: lat,
-      longitude: lng,
-      radius: radius,
-      size: 20
-    })
-  });
+    const response = await fetch('/api/v1/places/search/location', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            latitude: lat,
+            longitude: lng,
+            radius: radius,
+            size: 20
+        })
+    });
 
-  return await response.json();
+    return await response.json();
 };
 
 // 커서 페이징
 const fetchNextPage = async (cursor: string) => {
-  const params = new URLSearchParams({
-    keyword: '합주실',
-    cursor: cursor,
-    size: '20'
-  });
+    const params = new URLSearchParams({
+        keyword: '합주실',
+        cursor: cursor,
+        size: '20'
+    });
 
-  const response = await fetch(`/api/v1/places/search?${params}`);
-  return await response.json();
+    const response = await fetch(`/api/v1/places/search?${params}`);
+    return await response.json();
 };
 ```
 
@@ -286,13 +294,13 @@ RestTemplate restTemplate = new RestTemplate();
 
 // 통합 검색
 String url = UriComponentsBuilder
-    .fromHttpUrl("http://localhost:8080/api/v1/places/search")
-    .queryParam("keyword", "합주실")
-    .queryParam("latitude", 37.5665)
-    .queryParam("longitude", 126.9780)
-    .queryParam("radius", 3000)
-    .build()
-    .toUriString();
+		.fromHttpUrl("http://localhost:8080/api/v1/places/search")
+		.queryParam("keyword", "합주실")
+		.queryParam("latitude", 37.5665)
+		.queryParam("longitude", 126.9780)
+		.queryParam("radius", 3000)
+		.build()
+		.toUriString();
 
 PlaceSearchResponse response = restTemplate.getForObject(url, PlaceSearchResponse.class);
 ```

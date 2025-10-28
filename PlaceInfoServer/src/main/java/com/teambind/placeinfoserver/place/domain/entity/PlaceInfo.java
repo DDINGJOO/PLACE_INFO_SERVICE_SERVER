@@ -36,6 +36,7 @@ import java.util.Set;
 public class PlaceInfo extends BaseEntity {
 	
 	@Id
+	@Column(name = "id", nullable = false)
 	private String id;
 	
 	/**
@@ -104,7 +105,7 @@ public class PlaceInfo extends BaseEntity {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(
 			name = "place_keywords",
-			joinColumns = @JoinColumn(name = "place_id"),
+			joinColumns = @JoinColumn(name = "place_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "keyword_id")
 	)
 	@Builder.Default

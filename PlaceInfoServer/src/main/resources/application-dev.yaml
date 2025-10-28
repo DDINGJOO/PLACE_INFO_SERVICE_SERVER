@@ -1,6 +1,6 @@
 spring:
   kafka:
-    bootstrap-servers: ${KAFKA_URL1},${KAFKA_URL2},${KAFKA_URL3}
+    bootstrap-servers: localhost:29091,localhost:29092,localhost:29093
     producer:
       retries: 3
       batch-size: 16384
@@ -21,10 +21,10 @@ spring:
 
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: ${DB_DRIVER}
+    url: jdbc:postgresql://localhost:5432/place
+    username: user
+    password: "pass123#"
+    driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000
       maximum-pool-size: 10
@@ -36,7 +36,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
 
     properties:
       hibernate:
@@ -50,8 +50,8 @@ spring:
     redis:
       repositories:
         enabled: false
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: localhost
+      port: 6379
 
 
 
@@ -62,7 +62,7 @@ spring:
 # Logging Configuration
 logging:
   level:
-    root: ${LOG_LEVEL}
+    root: INFO
     com.teambind: DEBUG
     org.springframework: INFO
     org.hibernate.SQL: DEBUG

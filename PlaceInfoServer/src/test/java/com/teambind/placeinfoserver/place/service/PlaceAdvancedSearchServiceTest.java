@@ -9,6 +9,7 @@ import com.teambind.placeinfoserver.place.fixture.PlaceRequestFactory;
 import com.teambind.placeinfoserver.place.fixture.PlaceTestFactory;
 import com.teambind.placeinfoserver.place.repository.KeywordRepository;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
+import com.teambind.placeinfoserver.place.service.query.PlaceQueryService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,16 +25,16 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * PlaceAdvancedSearchService 통합 테스트
+ * PlaceQueryService 통합 테스트 (CQRS - Query)
  */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-@DisplayName("PlaceAdvancedSearchService 통합 테스트")
+@DisplayName("PlaceQueryService 통합 테스트")
 class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
-	
+
 	@Autowired
-	private PlaceAdvancedSearchService searchService;
+	private PlaceQueryService searchService;
 	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;

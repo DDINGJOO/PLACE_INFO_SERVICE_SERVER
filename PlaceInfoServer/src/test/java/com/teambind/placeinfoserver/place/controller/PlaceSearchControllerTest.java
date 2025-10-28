@@ -3,6 +3,7 @@ package com.teambind.placeinfoserver.place.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teambind.placeinfoserver.place.config.BaseIntegrationTest;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
+import com.teambind.placeinfoserver.place.dto.request.LocationSearchRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.fixture.PlaceTestFactory;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
@@ -127,7 +128,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 		@Order(5)
 		@DisplayName("위치 기반 검색 - 성공")
 		void searchByLocation_Success() throws Exception {
-			PlaceSearchController.LocationSearchRequest request = new PlaceSearchController.LocationSearchRequest();
+			LocationSearchRequest request = new LocationSearchRequest();
 			request.setLatitude(37.4979);
 			request.setLongitude(127.0276);
 			request.setRadius(5000);
@@ -146,7 +147,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 		@Order(6)
 		@DisplayName("위치 기반 검색 with 키워드 - 성공")
 		void searchByLocationWithKeyword_Success() throws Exception {
-			PlaceSearchController.LocationSearchRequest request = new PlaceSearchController.LocationSearchRequest();
+			LocationSearchRequest request = new LocationSearchRequest();
 			request.setLatitude(37.4979);
 			request.setLongitude(127.0276);
 			request.setRadius(10000);

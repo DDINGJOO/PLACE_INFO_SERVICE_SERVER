@@ -1,12 +1,15 @@
 package com.teambind.placeinfoserver.place.controller;
 
+import com.teambind.placeinfoserver.place.dto.request.LocationSearchRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
+import com.teambind.placeinfoserver.place.dto.response.CountResponse;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
-import com.teambind.placeinfoserver.place.service.PlaceAdvancedSearchService;
+import com.teambind.placeinfoserver.place.service.query.PlaceQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 공간 탐색 REST API 컨트롤러
+ * 공간 탐색 REST API 컨트롤러 (CQRS - Query)
  * 커서 기반 페이징과 다양한 검색 옵션 제공
+ * 읽기 전용 작업만 수행
  */
 @Slf4j
 @RestController
@@ -24,8 +28,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place Search", description = "공간 탐색 API")
 public class PlaceSearchController {
-	
-	private final PlaceAdvancedSearchService searchService;
+
+	private final PlaceQueryService queryService;
 	
 	/**
 	 * 통합 검색 API
@@ -75,8 +79,8 @@ public class PlaceSearchController {
 		
 		log.info("검색 요청: keyword={}, location=({},{}), cursor={}",
 				keyword, latitude, longitude, cursor);
-		
-		PlaceSearchResponse response = searchService.search(request);
+
+		PlaceSearchResponse response = queryService.search(request);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -88,7 +92,7 @@ public class PlaceSearchController {
 	@Operation(summary = "위치 기반 검색", description = "좌표를 중심으로 반경 내 장소를 검색합니다")
 	@ApiResponse(responseCode = "200", description = "검색 성공")
 	public ResponseEntity<PlaceSearchResponse> searchByLocation(
-			@RequestBody LocationSearchRequest request
+			@Valid @RequestBody LocationSearchRequest request
 	) {
 		PlaceSearchRequest searchRequest = PlaceSearchRequest.builder()
 				.latitude(request.getLatitude())
@@ -105,8 +109,8 @@ public class PlaceSearchController {
 		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(), request.getLongitude(), request.getRadius());
-		
-		PlaceSearchResponse response = searchService.searchByLocation(searchRequest);
+
+		PlaceSearchResponse response = queryService.searchByLocation(searchRequest);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -124,8 +128,8 @@ public class PlaceSearchController {
 			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-		
-		PlaceSearchResponse response = searchService.searchByRegion(
+
+		PlaceSearchResponse response = queryService.searchByRegion(
 				province, city, district, cursor, size
 		);
 		return ResponseEntity.ok(response);
@@ -141,8 +145,8 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-		
-		PlaceSearchResponse response = searchService.getPopularPlaces(size);
+
+		PlaceSearchResponse response = queryService.getPopularPlaces(size);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -156,8 +160,8 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-		
-		PlaceSearchResponse response = searchService.getRecentPlaces(size);
+
+		PlaceSearchResponse response = queryService.getRecentPlaces(size);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -170,105 +174,7 @@ public class PlaceSearchController {
 	public ResponseEntity<CountResponse> countSearchResults(
 			@RequestBody PlaceSearchRequest request
 	) {
-		Long count = searchService.countSearchResults(request);
+		Long count = queryService.countSearchResults(request);
 		return ResponseEntity.ok(new CountResponse(count));
-	}
-	
-	/**
-	 * 위치 검색 요청 DTO
-	 */
-	public static class LocationSearchRequest {
-		private Double latitude;
-		private Double longitude;
-		private Integer radius;
-		private String keyword;
-		private List<Long> keywordIds;
-		private Boolean parkingAvailable;
-		private String cursor;
-		private Integer size;
-		
-		// Getters and setters
-		public Double getLatitude() {
-			return latitude;
-		}
-		
-		public void setLatitude(Double latitude) {
-			this.latitude = latitude;
-		}
-		
-		public Double getLongitude() {
-			return longitude;
-		}
-		
-		public void setLongitude(Double longitude) {
-			this.longitude = longitude;
-		}
-		
-		public Integer getRadius() {
-			return radius != null ? radius : 5000;
-		}
-		
-		public void setRadius(Integer radius) {
-			this.radius = radius;
-		}
-		
-		public String getKeyword() {
-			return keyword;
-		}
-		
-		public void setKeyword(String keyword) {
-			this.keyword = keyword;
-		}
-		
-		public List<Long> getKeywordIds() {
-			return keywordIds;
-		}
-		
-		public void setKeywordIds(List<Long> keywordIds) {
-			this.keywordIds = keywordIds;
-		}
-		
-		public Boolean getParkingAvailable() {
-			return parkingAvailable;
-		}
-		
-		public void setParkingAvailable(Boolean parkingAvailable) {
-			this.parkingAvailable = parkingAvailable;
-		}
-		
-		public String getCursor() {
-			return cursor;
-		}
-		
-		public void setCursor(String cursor) {
-			this.cursor = cursor;
-		}
-		
-		public Integer getSize() {
-			return size != null ? size : 20;
-		}
-		
-		public void setSize(Integer size) {
-			this.size = size;
-		}
-	}
-	
-	/**
-	 * 개수 응답 DTO
-	 */
-	public static class CountResponse {
-		private Long count;
-		
-		public CountResponse(Long count) {
-			this.count = count;
-		}
-		
-		public Long getCount() {
-			return count;
-		}
-		
-		public void setCount(Long count) {
-			this.count = count;
-		}
 	}
 }

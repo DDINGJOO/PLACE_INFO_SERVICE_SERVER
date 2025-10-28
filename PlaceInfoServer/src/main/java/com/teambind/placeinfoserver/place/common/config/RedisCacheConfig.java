@@ -1,4 +1,4 @@
-package com.teambind.placeinfoserver.place.config;
+package com.teambind.placeinfoserver.place.common.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;

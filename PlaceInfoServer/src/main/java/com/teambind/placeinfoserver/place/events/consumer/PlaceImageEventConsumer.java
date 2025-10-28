@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class eventConsumer {
+public class PlaceImageEventConsumer {
 	private final PlaceImageUpdateService placeImageUpdateService;
-	private JsonUtil jsonUtil;
+	private final JsonUtil jsonUtil;
 	
 	
 	@KafkaListener(topics = "place-image-changed", groupId = "place-consumer-group")

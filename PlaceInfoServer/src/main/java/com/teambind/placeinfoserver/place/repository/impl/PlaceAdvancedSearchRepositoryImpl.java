@@ -85,8 +85,8 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 		// 메타데이터 생성
 		PlaceSearchResponse.SearchMetadata metadata = PlaceSearchResponse.SearchMetadata.builder()
 				.searchTime(System.currentTimeMillis() - startTime)
-				.sortBy(request.getSortBy().name())
-				.sortDirection(request.getSortDirection().name())
+				.sortBy(request.getSortBy() != null ? request.getSortBy().name() : "DISTANCE")
+				.sortDirection(request.getSortDirection() != null ? request.getSortDirection().name() : "ASC")
 				.centerLat(request.getLatitude())
 				.centerLng(request.getLongitude())
 				.radiusInMeters(request.getRadiusInMeters())
@@ -107,35 +107,90 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 			return PlaceSearchResponse.empty();
 		}
 		
-		// PostGIS를 활용한 위치 기반 검색
+		long startTime = System.currentTimeMillis();
+		
+		// PostGIS를 활용한 위치 기반 검색 - ID만 조회
 		String sql = """
-				SELECT pi.*, pl.*,
-				       ST_Distance(pl.coordinates, ST_MakePoint(:lng, :lat)::geography) as distance
+				SELECT pi.id,
+				       ST_Distance(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) as distance
 				FROM place_info pi
 				JOIN place_locations pl ON pi.id = pl.place_info_id
 				WHERE pi.deleted_at IS NULL
-				  AND pi.is_active = true
+				  AND pi.is_active = :isActive
 				  AND pi.approval_status = :approvalStatus
-				  AND ST_DWithin(pl.coordinates, ST_MakePoint(:lng, :lat)::geography, :radius)
+				  AND ST_DWithin(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius)
 				ORDER BY distance
 				LIMIT :limit
 				""";
 		
+		@SuppressWarnings("unchecked")
 		List<Object[]> results = entityManager.createNativeQuery(sql)
 				.setParameter("lat", request.getLatitude())
 				.setParameter("lng", request.getLongitude())
 				.setParameter("radius", request.getRadiusInMeters())
+				.setParameter("isActive", request.getIsActive())
 				.setParameter("approvalStatus", request.getApprovalStatus())
-				.setParameter("limit", request.getSize())
+				.setParameter("limit", request.getSize() + 1)  // hasNext 판단용
 				.getResultList();
 		
-		// 결과 변환 및 반환
-		List<PlaceSearchResponse.PlaceSearchItem> items = convertNativeResults(results);
+		if (results.isEmpty()) {
+			return PlaceSearchResponse.empty();
+		}
+		
+		// hasNext 판단
+		boolean hasNext = results.size() > request.getSize();
+		if (hasNext) {
+			results = results.subList(0, request.getSize());
+		}
+		
+		// ID 추출
+		List<String> placeIds = results.stream()
+				.map(row -> (String) row[0])
+				.collect(Collectors.toList());
+		
+		// QueryDSL로 엔티티 조회 (거리 순서 유지)
+		List<PlaceInfo> places = queryFactory
+				.selectFrom(placeInfo)
+				.distinct()
+				.leftJoin(placeInfo.location, placeLocation).fetchJoin()
+				.leftJoin(placeInfo.parking, placeParking).fetchJoin()
+				.leftJoin(placeInfo.contact, placeContact).fetchJoin()
+				.where(placeInfo.id.in(placeIds))
+				.fetch();
+		
+		// 거리 순서대로 정렬 (Native Query 결과 순서 유지)
+		List<PlaceInfo> orderedPlaces = placeIds.stream()
+				.map(id -> places.stream()
+						.filter(p -> p.getId().equals(id))
+						.findFirst()
+						.orElse(null))
+				.filter(p -> p != null)
+				.collect(Collectors.toList());
+		
+		// DTO 변환
+		List<PlaceSearchResponse.PlaceSearchItem> items = convertToItems(orderedPlaces, request);
+		
+		// 거리 정보 추가
+		for (int i = 0; i < items.size(); i++) {
+			Double distance = ((Number) results.get(i)[1]).doubleValue();
+			items.get(i).setDistance(distance);
+		}
+		
+		// 메타데이터 생성
+		PlaceSearchResponse.SearchMetadata metadata = PlaceSearchResponse.SearchMetadata.builder()
+				.searchTime(System.currentTimeMillis() - startTime)
+				.sortBy("DISTANCE")
+				.sortDirection("ASC")
+				.centerLat(request.getLatitude())
+				.centerLng(request.getLongitude())
+				.radiusInMeters(request.getRadiusInMeters())
+				.build();
 		
 		return PlaceSearchResponse.builder()
 				.items(items)
-				.hasNext(items.size() >= request.getSize())
+				.hasNext(hasNext)
 				.count(items.size())
+				.metadata(metadata)
 				.build();
 	}
 	
@@ -289,7 +344,11 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 				}
 			}
 			case CREATED_AT -> {
-				LocalDateTime lastCreatedAt = LocalDateTime.ofEpochSecond(cursor.getLastSortValue().longValue(), 0, java.time.ZoneOffset.UTC);
+				LocalDateTime lastCreatedAt = LocalDateTime.ofEpochSecond(
+						cursor.getLastSortValue().longValue(),
+						0,
+						java.time.ZoneId.systemDefault().getRules().getOffset(java.time.Instant.now())
+				);
 				if (request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC) {
 					cursorCondition = placeInfo.createdAt.before(lastCreatedAt)
 							.or(placeInfo.createdAt.eq(lastCreatedAt)
@@ -421,15 +480,6 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	}
 	
 	/**
-	 * Native 쿼리 결과를 DTO로 변환
-	 */
-	private List<PlaceSearchResponse.PlaceSearchItem> convertNativeResults(List<Object[]> results) {
-		// Native 쿼리 결과를 PlaceSearchItem으로 변환
-		// 구현 생략 (실제 구현 시 필요한 필드 매핑)
-		return new ArrayList<>();
-	}
-	
-	/**
 	 * 커서 생성
 	 */
 	private PlaceSearchCursor createCursor(PlaceInfo lastItem, PlaceSearchRequest request) {
@@ -450,7 +500,9 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 			);
 			case CREATED_AT -> PlaceSearchCursor.forCreatedAt(
 					lastItem.getId(),
-					lastItem.getCreatedAt().toEpochSecond(java.time.ZoneOffset.UTC),
+					lastItem.getCreatedAt().toEpochSecond(
+							java.time.ZoneId.systemDefault().getRules().getOffset(java.time.Instant.now())
+					),
 					null,
 					true
 			);

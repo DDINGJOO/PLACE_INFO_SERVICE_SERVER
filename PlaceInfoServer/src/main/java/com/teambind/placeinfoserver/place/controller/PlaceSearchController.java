@@ -24,9 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place Search", description = "공간 탐색 API")
 public class PlaceSearchController {
-
+	
 	private final PlaceAdvancedSearchService searchService;
-
+	
 	/**
 	 * 통합 검색 API
 	 * GET 파라미터를 통한 유연한 검색 지원
@@ -72,14 +72,14 @@ public class PlaceSearchController {
 				.cursor(cursor)
 				.size(size)
 				.build();
-
+		
 		log.info("검색 요청: keyword={}, location=({},{}), cursor={}",
 				keyword, latitude, longitude, cursor);
-
+		
 		PlaceSearchResponse response = searchService.search(request);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 위치 기반 검색 API
 	 * 특정 좌표 중심으로 반경 내 장소 검색
@@ -102,14 +102,14 @@ public class PlaceSearchController {
 				.cursor(request.getCursor())
 				.size(request.getSize())
 				.build();
-
+		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(), request.getLongitude(), request.getRadius());
-
+		
 		PlaceSearchResponse response = searchService.searchByLocation(searchRequest);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 지역별 검색 API
 	 */
@@ -124,13 +124,13 @@ public class PlaceSearchController {
 			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-
+		
 		PlaceSearchResponse response = searchService.searchByRegion(
 				province, city, district, cursor, size
 		);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 인기 장소 조회 API
 	 */
@@ -141,11 +141,11 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-
+		
 		PlaceSearchResponse response = searchService.getPopularPlaces(size);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 최신 등록 장소 조회 API
 	 */
@@ -156,11 +156,11 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-
+		
 		PlaceSearchResponse response = searchService.getRecentPlaces(size);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 검색 결과 개수 조회 API
 	 */
@@ -173,7 +173,7 @@ public class PlaceSearchController {
 		Long count = searchService.countSearchResults(request);
 		return ResponseEntity.ok(new CountResponse(count));
 	}
-
+	
 	/**
 	 * 위치 검색 요청 DTO
 	 */
@@ -186,37 +186,89 @@ public class PlaceSearchController {
 		private Boolean parkingAvailable;
 		private String cursor;
 		private Integer size;
-
+		
 		// Getters and setters
-		public Double getLatitude() { return latitude; }
-		public void setLatitude(Double latitude) { this.latitude = latitude; }
-		public Double getLongitude() { return longitude; }
-		public void setLongitude(Double longitude) { this.longitude = longitude; }
-		public Integer getRadius() { return radius != null ? radius : 5000; }
-		public void setRadius(Integer radius) { this.radius = radius; }
-		public String getKeyword() { return keyword; }
-		public void setKeyword(String keyword) { this.keyword = keyword; }
-		public List<Long> getKeywordIds() { return keywordIds; }
-		public void setKeywordIds(List<Long> keywordIds) { this.keywordIds = keywordIds; }
-		public Boolean getParkingAvailable() { return parkingAvailable; }
-		public void setParkingAvailable(Boolean parkingAvailable) { this.parkingAvailable = parkingAvailable; }
-		public String getCursor() { return cursor; }
-		public void setCursor(String cursor) { this.cursor = cursor; }
-		public Integer getSize() { return size != null ? size : 20; }
-		public void setSize(Integer size) { this.size = size; }
+		public Double getLatitude() {
+			return latitude;
+		}
+		
+		public void setLatitude(Double latitude) {
+			this.latitude = latitude;
+		}
+		
+		public Double getLongitude() {
+			return longitude;
+		}
+		
+		public void setLongitude(Double longitude) {
+			this.longitude = longitude;
+		}
+		
+		public Integer getRadius() {
+			return radius != null ? radius : 5000;
+		}
+		
+		public void setRadius(Integer radius) {
+			this.radius = radius;
+		}
+		
+		public String getKeyword() {
+			return keyword;
+		}
+		
+		public void setKeyword(String keyword) {
+			this.keyword = keyword;
+		}
+		
+		public List<Long> getKeywordIds() {
+			return keywordIds;
+		}
+		
+		public void setKeywordIds(List<Long> keywordIds) {
+			this.keywordIds = keywordIds;
+		}
+		
+		public Boolean getParkingAvailable() {
+			return parkingAvailable;
+		}
+		
+		public void setParkingAvailable(Boolean parkingAvailable) {
+			this.parkingAvailable = parkingAvailable;
+		}
+		
+		public String getCursor() {
+			return cursor;
+		}
+		
+		public void setCursor(String cursor) {
+			this.cursor = cursor;
+		}
+		
+		public Integer getSize() {
+			return size != null ? size : 20;
+		}
+		
+		public void setSize(Integer size) {
+			this.size = size;
+		}
 	}
-
+	
 	/**
 	 * 개수 응답 DTO
 	 */
 	public static class CountResponse {
 		private Long count;
-
+		
 		public CountResponse(Long count) {
 			this.count = count;
 		}
-
-		public Long getCount() { return count; }
-		public void setCount(Long count) { this.count = count; }
+		
+		public Long getCount() {
+			return count;
+		}
+		
+		public void setCount(Long count) {
+			this.count = count;
+		}
 	}
 }

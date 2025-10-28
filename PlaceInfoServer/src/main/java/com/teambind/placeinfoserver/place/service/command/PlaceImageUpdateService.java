@@ -33,10 +33,10 @@ public class PlaceImageUpdateService {
 	public String updateImage(ImagesChangeEventWrapper event) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(event.getReferenceId())
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
-
+		
 		// 기존 이미지 삭제
 		placeInfo.removeAllImage();
-
+		
 		// 순서에 맞춰서 이미지 세팅
 		if (event.getImages() == null || event.getImages().isEmpty()) {
 			return placeInfo.getId();

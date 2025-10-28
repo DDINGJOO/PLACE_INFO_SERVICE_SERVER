@@ -31,7 +31,7 @@ public class PlaceLocationUpdateService {
 	public String updateLocation(String placeId, PlaceLocationRequest req) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
-
+		
 		placeInfo.setLocation(placeMapper.toLocationEntity(req, placeInfo));
 		// @Transactional이므로 자동으로 변경사항 반영 (더티 체킹)
 		return placeId;

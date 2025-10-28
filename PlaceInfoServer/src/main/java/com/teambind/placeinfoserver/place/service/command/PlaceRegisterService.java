@@ -85,11 +85,12 @@ public class PlaceRegisterService {
 	 * @param placeId 업체 ID
 	 */
 	@Transactional
-	public void activatePlace(String placeId) {
+	public String activatePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.activate();
+		return placeInfo.getId();
 	}
 	
 	/**
@@ -98,11 +99,12 @@ public class PlaceRegisterService {
 	 * @param placeId 업체 ID
 	 */
 	@Transactional
-	public void deactivatePlace(String placeId) {
+	public String deactivatePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.deactivate();
+		return placeInfo.getId();
 	}
 	
 	/**
@@ -111,11 +113,12 @@ public class PlaceRegisterService {
 	 * @param placeId 업체 ID
 	 */
 	@Transactional
-	public void approvePlace(String placeId) {
+	public String approvePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.approve();
+		return placeInfo.getId(); // 더티체크
 	}
 	
 	/**
@@ -124,10 +127,11 @@ public class PlaceRegisterService {
 	 * @param placeId 업체 ID
 	 */
 	@Transactional
-	public void rejectPlace(String placeId) {
+	public String rejectPlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.reject();
+		return placeInfo.getId(); // 더티체트
 	}
 }

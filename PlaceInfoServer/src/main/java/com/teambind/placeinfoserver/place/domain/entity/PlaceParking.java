@@ -26,7 +26,7 @@ public class PlaceParking extends BaseEntity {
 	 * 소속 업체 (일대일 관계)
 	 */
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "place_id", nullable = false, unique = true)
+	@JoinColumn(name = "place_info_id", nullable = false, unique = true)
 	private PlaceInfo placeInfo;
 	
 	/**

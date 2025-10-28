@@ -19,6 +19,11 @@ configurations {
         extendsFrom annotationProcessor
     }
 }
+def querydslDir = "$buildDir/generated/querydsl"
+ext {
+    querydslVersion = '5.0.0'
+}
+
 
 repositories {
     mavenCentral()
@@ -30,10 +35,18 @@ dependencies {
     implementation 'org.locationtech.jts:jts-core:1.19.0'
     implementation 'org.hibernate:hibernate-spatial:6.5.2.Final'
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'  // .env 파일 자동 로드
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //DSL
+    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+    //QueryDsl
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     //test
     testImplementation 'org.projectlombok:lombok:1.18.32'

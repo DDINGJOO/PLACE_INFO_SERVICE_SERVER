@@ -28,7 +28,7 @@ public class PlaceContact extends BaseEntity {
 	 * 소속 업체 (일대일 관계)
 	 */
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "place_id", nullable = false, unique = true)
+	@JoinColumn(name = "place_info_id", nullable = false, unique = true)
 	private PlaceInfo placeInfo;
 	
 	/**
@@ -43,10 +43,10 @@ public class PlaceContact extends BaseEntity {
 	@ElementCollection
 	@CollectionTable(
 			name = "place_websites",
-			joinColumns = @JoinColumn(name = "contact_id")
+			joinColumns = @JoinColumn(name = "place_contact_id")
 	)
-	@Column(name = "website_url", length = 500)
-	@OrderColumn(name = "display_order")
+	@Column(name = "websites", length = 500)
+	@OrderColumn(name = "websites_order")
 	@Builder.Default
 	private List<String> websites = new ArrayList<>();
 	
@@ -57,10 +57,10 @@ public class PlaceContact extends BaseEntity {
 	@ElementCollection
 	@CollectionTable(
 			name = "place_social_links",
-			joinColumns = @JoinColumn(name = "contact_id")
+			joinColumns = @JoinColumn(name = "place_contact_id")
 	)
-	@Column(name = "social_url", length = 500)
-	@OrderColumn(name = "display_order")
+	@Column(name = "social_links", length = 500)
+	@OrderColumn(name = "social_links_order")
 	@Builder.Default
 	private List<String> socialLinks = new ArrayList<>();
 	

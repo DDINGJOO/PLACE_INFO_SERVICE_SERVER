@@ -24,7 +24,7 @@ public class PlaceImage {
 	 * 업체 정보 (다대일 관계)
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "place_id", nullable = false)
+	@JoinColumn(name = "place_info_id", nullable = false)
 	private PlaceInfo placeInfo;
 	
 	/**

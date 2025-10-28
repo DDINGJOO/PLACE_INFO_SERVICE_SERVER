@@ -76,12 +76,13 @@ public class PlaceAdvancedSearchService {
 	 * @param request 위치 정보를 포함한 검색 요청
 	 * @return 거리순으로 정렬된 검색 결과
 	 */
-	@Cacheable(
-			value = "placeLocationSearch",
-			key = "#request.latitude + ':' + #request.longitude + ':' + #request.radiusInMeters",
-			condition = "#request.cursor == null", // 첫 페이지만 캐싱
-			unless = "#result.items.isEmpty()"
-	)
+	// TODO: 캐싱 활성화 예정
+	// @Cacheable(
+	//		value = "placeLocationSearch",
+	//		key = "#request.latitude + ':' + #request.longitude + ':' + #request.radiusInMeters",
+	//		condition = "#request.cursor == null",
+	//		unless = "#result.items.isEmpty()"
+	// )
 	public PlaceSearchResponse searchByLocation(PlaceSearchRequest request) {
 		if (!request.isLocationBasedSearch()) {
 			throw new IllegalArgumentException("위치 정보가 필요합니다");
@@ -154,11 +155,12 @@ public class PlaceAdvancedSearchService {
 	 * @param size 결과 개수
 	 * @return 인기 장소 목록
 	 */
-	@Cacheable(
-			value = "popularPlaces",
-			key = "#size != null ? #size : 10",
-			unless = "#result.items.isEmpty()"
-	)
+	// TODO: 캐싱 활성화 예정
+	// @Cacheable(
+	//		value = "popularPlaces",
+	//		key = "#size != null ? #size : 10",
+	//		unless = "#result.items.isEmpty()"
+	// )
 	public PlaceSearchResponse getPopularPlaces(Integer size) {
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.RATING)

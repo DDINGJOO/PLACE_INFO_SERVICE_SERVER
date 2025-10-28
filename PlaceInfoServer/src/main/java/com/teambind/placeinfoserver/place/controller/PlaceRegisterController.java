@@ -46,7 +46,7 @@ public class PlaceRegisterController {
 	}
 	
 	@PutMapping("/{placeId}/locations")
-	public ResponseEntity<Map<String, String>> registerLocation(@PathParam(value = "placeId") String placeId, @RequestBody PlaceLocationRequest req) {
+	public ResponseEntity<Map<String, String>> registerLocation(@PathVariable(value = "placeId") String placeId, @RequestBody PlaceLocationRequest req) {
 		
 		String responseId = locationService.updateLocation(placeId, req);
 		return ResponseEntity.ok(
@@ -55,13 +55,13 @@ public class PlaceRegisterController {
 	}
 	
 	@DeleteMapping("/{placeId}")
-	public ResponseEntity<Void> delete(@PathParam(value = "placeId") String placeId) {
+	public ResponseEntity<Void> delete(@PathVariable(value = "placeId") String placeId) {
 		infoService.deletePlace(placeId, "OWNER");
 		return ResponseEntity.noContent().build();
 	}
 	
 	@GetMapping("/{placeId}")
-	public ResponseEntity<PlaceInfoResponse> getPlace(@PathParam(value = "placeId") String placeId) {
+	public ResponseEntity<PlaceInfoResponse> getPlace(@PathVariable(value = "placeId") String placeId) {
 		return ResponseEntity.ok(searchService.getPlace(placeId));
 	}
 	

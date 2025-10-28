@@ -1,7 +1,6 @@
 package com.teambind.placeinfoserver.place.repository.dsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.domain.entity.QPlaceInfo;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoSearchRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +14,4 @@ public class PlaceInfoSearchRepositoryImpl implements PlaceInfoSearchRepository 
 	private final JPAQueryFactory queryFactory;
 	
 	
-	@Override
-	public PlaceInfo search(String placeId) {
-		return queryFactory.selectFrom(pi)
-				.where(pi.id.eq(placeId))
-				.fetchOne();
-	}
 }

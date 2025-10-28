@@ -109,8 +109,8 @@ class PlaceRegisterControllerTest extends BaseIntegrationTest {
 			testPlace = placeInfoRepository.save(testPlace);
 
 			mockMvc.perform(patch("/api/v1/places/{placeId}", testPlace.getId())
-							.param("type", "activate")
-							.param("contents", "true")
+							.param("type", "ACTIVATE")
+							.param("activate", "true")
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
@@ -125,8 +125,8 @@ class PlaceRegisterControllerTest extends BaseIntegrationTest {
 		@DisplayName("업체 비활성화 - 성공")
 		void deactivate_Success() throws Exception {
 			mockMvc.perform(patch("/api/v1/places/{placeId}", testPlace.getId())
-							.param("type", "activate")
-							.param("contents", "false")
+							.param("type", "ACTIVATE")
+							.param("activate", "false")
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());

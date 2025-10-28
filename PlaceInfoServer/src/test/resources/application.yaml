@@ -19,7 +19,7 @@ spring:
     defer-datasource-initialization: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:29092
     producer:
       retries: 0
     consumer:

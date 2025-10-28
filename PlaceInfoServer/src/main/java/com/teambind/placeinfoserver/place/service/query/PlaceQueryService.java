@@ -1,4 +1,4 @@
-package com.teambind.placeinfoserver.place.service;
+package com.teambind.placeinfoserver.place.service.query;
 
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
@@ -10,17 +10,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 공간 탐색 서비스
- * 커서 기반 페이징과 다양한 검색 옵션을 제공
+ * 장소 조회 쿼리 서비스 (CQRS - Query)
+ * 읽기 전용 트랜잭션으로 장소 검색 및 조회 기능 제공
+ * - 커서 기반 페이징
+ * - 위치 기반 검색 (PostGIS)
+ * - 키워드 기반 검색
+ * - 지역 기반 검색
+ * - 인기/최신 장소 조회
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PlaceAdvancedSearchService {
-	
+public class PlaceQueryService {
+
 	private final PlaceAdvancedSearchRepository searchRepository;
-	
+
 	/**
 	 * 통합 검색
 	 * 모든 검색 조건을 통합하여 처리
@@ -34,24 +39,24 @@ public class PlaceAdvancedSearchService {
 				request.getLatitude(),
 				request.getLongitude(),
 				request.getSortBy());
-		
+
 		// 유효성 검증
 		validateRequest(request);
-		
+
 		// 위치 기반 검색인 경우
 		if (request.isLocationBasedSearch()) {
 			return searchByLocation(request);
 		}
-		
+
 		// 키워드 검색인 경우
 		if (request.getKeywordIds() != null && !request.getKeywordIds().isEmpty()) {
 			return searchByKeywords(request);
 		}
-		
+
 		// 일반 검색
 		return searchWithCursor(request);
 	}
-	
+
 	/**
 	 * 커서 기반 일반 검색
 	 *
@@ -68,7 +73,7 @@ public class PlaceAdvancedSearchService {
 			return PlaceSearchResponse.empty();
 		}
 	}
-	
+
 	/**
 	 * 위치 기반 검색
 	 * PostGIS를 활용한 효율적인 지리 공간 검색
@@ -87,18 +92,18 @@ public class PlaceAdvancedSearchService {
 		if (!request.isLocationBasedSearch()) {
 			throw new IllegalArgumentException("위치 정보가 필요합니다");
 		}
-		
+
 		// 유효성 검증
 		validateRequest(request);
-		
+
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(),
 				request.getLongitude(),
 				request.getRadiusInMeters());
-		
+
 		return searchRepository.searchByLocation(request);
 	}
-	
+
 	/**
 	 * 키워드 기반 검색
 	 *
@@ -109,12 +114,12 @@ public class PlaceAdvancedSearchService {
 		if (request.getKeywordIds() == null || request.getKeywordIds().isEmpty()) {
 			return PlaceSearchResponse.empty();
 		}
-		
+
 		log.info("키워드 검색: {} 개 키워드", request.getKeywordIds().size());
-		
+
 		return searchRepository.searchByKeywords(request);
 	}
-	
+
 	/**
 	 * 지역 기반 검색
 	 * 특정 지역(시/구/동) 내의 장소 검색
@@ -142,12 +147,12 @@ public class PlaceAdvancedSearchService {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-		
+
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-		
+
 		return searchWithCursor(request);
 	}
-	
+
 	/**
 	 * 인기 장소 검색
 	 * 평점과 리뷰 수를 기준으로 인기 있는 장소 반환
@@ -169,12 +174,12 @@ public class PlaceAdvancedSearchService {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-		
+
 		log.info("인기 장소 조회: {} 건", request.getSize());
-		
+
 		return searchWithCursor(request);
 	}
-	
+
 	/**
 	 * 최신 등록 장소 검색
 	 *
@@ -189,19 +194,19 @@ public class PlaceAdvancedSearchService {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-		
+
 		log.info("최신 장소 조회: {} 건", request.getSize());
-		
+
 		return searchWithCursor(request);
 	}
-	
+
 	/**
 	 * 검색 요청 유효성 검증
 	 */
 	private void validateRequest(PlaceSearchRequest request) {
 		// 기본 유효성 검증
 		request.validate();
-		
+
 		// 위치 기반 검색 시 위도/경도 범위 검증
 		if (request.isLocationBasedSearch()) {
 			if (request.getLatitude() < -90 || request.getLatitude() > 90) {
@@ -211,14 +216,14 @@ public class PlaceAdvancedSearchService {
 				throw new IllegalArgumentException("유효하지 않은 경도입니다");
 			}
 		}
-		
+
 		// 페이지 크기 검증
 		if (request.getSize() != null && request.getSize() > 100) {
 			log.warn("페이지 크기가 100을 초과하여 100으로 조정됩니다");
 			request.setSize(100);
 		}
 	}
-	
+
 	/**
 	 * 검색 결과 개수 조회
 	 * 페이징 UI를 위한 전체 결과 수 반환

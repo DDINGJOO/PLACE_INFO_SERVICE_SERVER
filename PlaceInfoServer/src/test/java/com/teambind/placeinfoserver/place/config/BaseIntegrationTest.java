@@ -12,6 +12,9 @@ import org.testcontainers.utility.DockerImageName;
  * PostgreSQL + PostGIS Testcontainer를 설정
  * Redis Testcontainer를 설정
  * JPA Auditing을 활성화하여 BaseEntity의 createdAt, updatedAt 자동 설정
+ *
+ * Singleton 패턴으로 모든 테스트가 동일한 컨테이너 인스턴스를 공유합니다.
+ * 컨테이너는 JVM이 종료될 때까지 유지되어 테스트 성능이 향상됩니다.
  */
 @Import(JpaAuditingTestConfig.class)
 public abstract class BaseIntegrationTest {
@@ -20,20 +23,19 @@ public abstract class BaseIntegrationTest {
 	private static final RedisContainer redisContainer;
 
 	static {
+		// Singleton 패턴: 모든 테스트에서 동일한 컨테이너 인스턴스 공유
 		postgresContainer = new PostgreSQLContainer<>(
 				DockerImageName.parse("postgis/postgis:15-3.3")
 						.asCompatibleSubstituteFor("postgres")
 		)
 				.withDatabaseName("testdb")
 				.withUsername("test")
-				.withPassword("test")
-				.withReuse(true); // 테스트 간 컨테이너 재사용으로 속도 향상
+				.withPassword("test");
 		postgresContainer.start();
 
 		redisContainer = new RedisContainer(
 				DockerImageName.parse("redis:7.2-alpine")
-		)
-				.withReuse(true); // 테스트 간 컨테이너 재사용으로 속도 향상
+		);
 		redisContainer.start();
 	}
 

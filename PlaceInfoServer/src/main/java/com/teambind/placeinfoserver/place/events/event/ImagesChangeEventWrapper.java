@@ -1,6 +1,7 @@
 package com.teambind.placeinfoserver.place.events.event;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 @Data
 @AllArgsConstructor
+@Builder
 public class ImagesChangeEventWrapper {
 	
 	/**

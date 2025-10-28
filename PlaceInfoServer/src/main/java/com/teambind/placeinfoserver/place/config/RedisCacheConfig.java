@@ -39,7 +39,7 @@ public class RedisCacheConfig {
 				.serializeKeysWith(RedisSerializationContext.SerializationPair
 						.fromSerializer(new StringRedisSerializer()))
 				.serializeValuesWith(RedisSerializationContext.SerializationPair
-						.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper())));
+						.fromSerializer(new GenericJackson2JsonRedisSerializer(createRedisObjectMapper())));
 		
 		// 캐시별 개별 설정
 		Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
@@ -76,24 +76,24 @@ public class RedisCacheConfig {
 	}
 	
 	/**
-	 * JSON 직렬화를 위한 ObjectMapper 설정
+	 * Redis 전용 JSON 직렬화를 위한 ObjectMapper 설정
+	 * 주의: Redis 캐싱용으로만 사용되며, HTTP 요청/응답 변환에는 사용되지 않음
 	 */
-	@Bean
-	public ObjectMapper objectMapper() {
+	private ObjectMapper createRedisObjectMapper() {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
-		
+
 		// 타입 정보 포함 (역직렬화를 위해)
 		BasicPolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 				.allowIfSubType(Object.class)
 				.build();
-		
+
 		mapper.activateDefaultTyping(
 				typeValidator,
 				ObjectMapper.DefaultTyping.NON_FINAL,
 				JsonTypeInfo.As.PROPERTY
 		);
-		
+
 		return mapper;
 	}
 }

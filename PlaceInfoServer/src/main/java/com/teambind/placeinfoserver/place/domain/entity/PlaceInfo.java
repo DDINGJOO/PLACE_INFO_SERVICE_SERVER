@@ -231,8 +231,9 @@ public class PlaceInfo extends BaseEntity {
 	}
 	
 	public void removeAllImage() {
-		var images = this.images;
-		for (PlaceImage image : images) {
+		// ConcurrentModificationException 방지를 위해 복사본 생성
+		var imagesToRemove = new ArrayList<>(this.images);
+		for (PlaceImage image : imagesToRemove) {
 			this.images.remove(image);
 			image.setPlaceInfo(null);
 		}

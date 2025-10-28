@@ -1,8 +1,6 @@
 package com.teambind.placeinfoserver.place.dto.request;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -13,6 +11,8 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlaceSearchRequest {
 	
 	// ======== 검색 조건 ========

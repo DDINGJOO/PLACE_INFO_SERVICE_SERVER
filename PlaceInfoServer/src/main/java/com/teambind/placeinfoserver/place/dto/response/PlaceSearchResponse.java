@@ -1,9 +1,6 @@
 package com.teambind.placeinfoserver.place.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -62,6 +59,7 @@ public class PlaceSearchResponse {
 	 * 개별 검색 결과 항목
 	 */
 	@Getter
+	@Setter
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor

@@ -6,8 +6,7 @@ import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.service.command.PlaceLocationUpdateService;
 import com.teambind.placeinfoserver.place.service.command.PlaceRegisterService;
-import com.teambind.placeinfoserver.place.service.read.PlaceInfoSearchService;
-import jakarta.websocket.server.PathParam;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +19,8 @@ import java.util.Map;
 public class PlaceRegisterController {
 	private final PlaceRegisterService infoService;
 	private final PlaceLocationUpdateService locationService;
-	
-	// 테스트용 의존성 추가
-	private final PlaceInfoSearchService searchService;
+
+
 	
 	
 	@PostMapping()
@@ -33,7 +31,7 @@ public class PlaceRegisterController {
 	}
 	
 	@PatchMapping("/{placeId}")
-	public ResponseEntity<Void> activate(@RequestParam String type, @RequestParam boolean contents, @PathParam(value = "placeId") String placeId) {
+	public ResponseEntity<Void> activate(@RequestParam String type, @RequestParam boolean contents, @PathVariable(value = "placeId") String placeId) {
 		if (type.equalsIgnoreCase("activate")) {
 			if (contents) {
 				infoService.activatePlace(placeId);
@@ -59,11 +57,6 @@ public class PlaceRegisterController {
 		infoService.deletePlace(placeId, "OWNER");
 		return ResponseEntity.noContent().build();
 	}
-	
-	@GetMapping("/{placeId}")
-	public ResponseEntity<PlaceInfoResponse> getPlace(@PathVariable(value = "placeId") String placeId) {
-		return ResponseEntity.ok(searchService.getPlace(placeId));
-	}
-	
+
 	
 }

@@ -40,7 +40,8 @@ public class PlaceRequestFactory {
 	 * PlaceLocationRequest 생성
 	 */
 	private static PlaceLocationRequest createPlaceLocationRequest() {
-		AddressRequest address = AddressRequest.builder()
+		// 수동 입력 주소 데이터
+		AddressRequest addressData = AddressRequest.builder()
 				.province("서울특별시")
 				.city("강남구")
 				.district("역삼동")
@@ -48,9 +49,10 @@ public class PlaceRequestFactory {
 				.addressDetail("테스트빌딩 5층")
 				.postalCode("06234")
 				.build();
-		
+
 		return PlaceLocationRequest.builder()
-				.address(address)
+				.from(com.teambind.placeinfoserver.place.domain.enums.AddressSource.MANUAL)
+				.addressData(addressData)
 				.latitude(37.4979)
 				.longitude(127.0276)
 				.locationGuide("지하철 2호선 역삼역 3번 출구에서 도보 5분")

@@ -215,9 +215,9 @@ Url website = Url.of("example.com");
                │
 ┌──────────────▼──────────────────────────┐
 │   Repository Layer (JPA + QueryDSL)     │
-│  JpaRepository: 기본 CRUD               │
-│  QueryDSL: 복잡한 검색 쿼리              │
-│  Custom Repository: 위치 검색            │
+│  JpaRepository: 기본 CRUD                │ 
+│  QueryDSL: 복잡한 검색 쿼리                 │
+│  Custom Repository: 위치 검색             │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐

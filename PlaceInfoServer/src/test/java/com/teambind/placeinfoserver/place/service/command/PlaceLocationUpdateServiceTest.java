@@ -3,6 +3,7 @@ package com.teambind.placeinfoserver.place.service.command;
 import com.teambind.placeinfoserver.place.common.exception.CustomException;
 import com.teambind.placeinfoserver.place.config.BaseIntegrationTest;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
+import com.teambind.placeinfoserver.place.domain.enums.AddressSource;
 import com.teambind.placeinfoserver.place.dto.request.AddressRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceLocationRequest;
 import com.teambind.placeinfoserver.place.fixture.PlaceTestFactory;
@@ -41,101 +42,27 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 		testPlace = placeInfoRepository.save(testPlace);
 	}
 
-	@Nested
-	@DisplayName("위치 정보 업데이트 테스트")
-	class UpdateLocationTest {
+	// 헬퍼 메서드
+	private PlaceLocationRequest createLocationRequest(
+			double latitude, double longitude,
+			String province, String city, String district
+	) {
+		AddressRequest addressData = AddressRequest.builder()
+				.province(province)
+				.city(city)
+				.district(district)
+				.fullAddress(String.format("%s %s %s 123-45", province, city, district))
+				.addressDetail("테스트빌딩")
+				.postalCode("12345")
+				.build();
 
-		@Test
-		@Order(1)
-		@DisplayName("위치 정보 업데이트 - 성공")
-		void updateLocation_Success() {
-			// Given
-			PlaceLocationRequest request = createLocationRequest(
-					37.5665, 126.9780, "서울특별시", "중구", "명동"
-			);
-
-			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
-			// Then
-			assertThat(resultId).isEqualTo(testPlace.getId());
-
-			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
-			assertThat(updatedPlace.getLocation()).isNotNull();
-			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5665);
-			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(126.9780);
-			assertThat(updatedPlace.getLocation().getAddress().getProvince()).isEqualTo("서울특별시");
-			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("중구");
-			assertThat(updatedPlace.getLocation().getAddress().getDistrict()).isEqualTo("명동");
-		}
-
-		@Test
-		@Order(2)
-		@DisplayName("좌표만 업데이트 - 성공")
-		void updateLocation_CoordinatesOnly_Success() {
-			// Given
-			PlaceLocationRequest request = PlaceLocationRequest.builder()
-					.latitude(37.5172)
-					.longitude(127.0473)
-					.build();
-
-			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
-			// Then
-			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
-			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5172);
-			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(127.0473);
-			assertThat(updatedPlace.getLocation().getCoordinates()).isNotNull();
-			assertThat(updatedPlace.getLocation().getCoordinates().getSRID()).isEqualTo(4326);
-		}
-
-		@Test
-		@Order(3)
-		@DisplayName("주소 정보만 업데이트 - 성공")
-		void updateLocation_AddressOnly_Success() {
-			// Given
-			AddressRequest addressRequest = AddressRequest.builder()
-					.province("경기도")
-					.city("성남시")
-					.district("분당구")
-					.fullAddress("경기도 성남시 분당구 정자동 123-45")
-					.addressDetail("테스트빌딩 10층")
-					.postalCode("13500")
-					.build();
-
-			PlaceLocationRequest request = PlaceLocationRequest.builder()
-					.address(addressRequest)
-					.locationGuide("지하철 신분당선 정자역 1번 출구")
-					.build();
-
-			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
-			// Then
-			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
-			assertThat(updatedPlace.getLocation().getAddress()).isNotNull();
-			assertThat(updatedPlace.getLocation().getAddress().getProvince()).isEqualTo("경기도");
-			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("성남시");
-			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("지하철 신분당선 정자역 1번 출구");
-		}
-
-		@Test
-		@Order(4)
-		@DisplayName("위치 안내 정보 업데이트 - 성공")
-		void updateLocation_LocationGuide_Success() {
-			// Given
-			PlaceLocationRequest request = PlaceLocationRequest.builder()
-					.locationGuide("버스 정류장에서 도보 3분, 건물 1층")
-					.build();
-
-			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
-			// Then
-			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
-			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("버스 정류장에서 도보 3분, 건물 1층");
-		}
+		return PlaceLocationRequest.builder()
+				.from(AddressSource.MANUAL)
+				.addressData(addressData)
+				.latitude(latitude)
+				.longitude(longitude)
+				.locationGuide("테스트 위치 안내")
+				.build();
 	}
 
 	@Nested
@@ -320,25 +247,101 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 		}
 	}
 
-	// 헬퍼 메서드
-	private PlaceLocationRequest createLocationRequest(
-			double latitude, double longitude,
-			String province, String city, String district
-	) {
-		AddressRequest addressRequest = AddressRequest.builder()
-				.province(province)
-				.city(city)
-				.district(district)
-				.fullAddress(String.format("%s %s %s 123-45", province, city, district))
-				.addressDetail("테스트빌딩")
-				.postalCode("12345")
-				.build();
+	@Nested
+	@DisplayName("위치 정보 업데이트 테스트")
+	class UpdateLocationTest {
 
-		return PlaceLocationRequest.builder()
-				.latitude(latitude)
-				.longitude(longitude)
-				.address(addressRequest)
-				.locationGuide("테스트 위치 안내")
-				.build();
+		@Test
+		@Order(1)
+		@DisplayName("위치 정보 업데이트 - 성공")
+		void updateLocation_Success() {
+			// Given
+			PlaceLocationRequest request = createLocationRequest(
+					37.5665, 126.9780, "서울특별시", "중구", "명동"
+			);
+
+			// When
+			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+
+			// Then
+			assertThat(resultId).isEqualTo(testPlace.getId());
+
+			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
+			assertThat(updatedPlace.getLocation()).isNotNull();
+			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5665);
+			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(126.9780);
+			assertThat(updatedPlace.getLocation().getAddress().getProvince()).isEqualTo("서울특별시");
+			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("중구");
+			assertThat(updatedPlace.getLocation().getAddress().getDistrict()).isEqualTo("명동");
+		}
+
+		@Test
+		@Order(2)
+		@DisplayName("좌표만 업데이트 - 성공")
+		void updateLocation_CoordinatesOnly_Success() {
+			// Given
+			PlaceLocationRequest request = PlaceLocationRequest.builder()
+					.latitude(37.5172)
+					.longitude(127.0473)
+					.build();
+
+			// When
+			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+
+			// Then
+			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
+			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5172);
+			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(127.0473);
+			assertThat(updatedPlace.getLocation().getCoordinates()).isNotNull();
+			assertThat(updatedPlace.getLocation().getCoordinates().getSRID()).isEqualTo(4326);
+		}
+
+		@Test
+		@Order(3)
+		@DisplayName("주소 정보만 업데이트 - 성공")
+		void updateLocation_AddressOnly_Success() {
+			// Given
+			AddressRequest addressData = AddressRequest.builder()
+					.province("경기도")
+					.city("성남시")
+					.district("분당구")
+					.fullAddress("경기도 성남시 분당구 정자동 123-45")
+					.addressDetail("테스트빌딩 10층")
+					.postalCode("13500")
+					.build();
+
+			PlaceLocationRequest request = PlaceLocationRequest.builder()
+					.from(AddressSource.MANUAL)
+					.addressData(addressData)
+					.locationGuide("지하철 신분당선 정자역 1번 출구")
+					.build();
+
+			// When
+			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+
+			// Then
+			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
+			assertThat(updatedPlace.getLocation().getAddress()).isNotNull();
+			assertThat(updatedPlace.getLocation().getAddress().getProvince()).isEqualTo("경기도");
+			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("성남시");
+			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("지하철 신분당선 정자역 1번 출구");
+		}
+
+		@Test
+		@Order(4)
+		@DisplayName("위치 안내 정보 업데이트 - 성공")
+		void updateLocation_LocationGuide_Success() {
+			// Given
+			PlaceLocationRequest request = PlaceLocationRequest.builder()
+					.locationGuide("버스 정류장에서 도보 3분, 건물 1층")
+					.build();
+
+			// When
+			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+
+			// Then
+			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
+			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("버스 정류장에서 도보 3분, 건물 1층");
+		}
 	}
 }

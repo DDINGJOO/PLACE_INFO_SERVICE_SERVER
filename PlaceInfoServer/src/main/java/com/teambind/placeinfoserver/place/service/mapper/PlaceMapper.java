@@ -1,16 +1,21 @@
 package com.teambind.placeinfoserver.place.service.mapper;
 
+import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
 import com.teambind.placeinfoserver.place.dto.response.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class PlaceMapper {
+	
+	private final AddressParser addressParser;
 	
 	// ========== Entity -> Response DTO ==========
 	
@@ -228,12 +233,15 @@ public class PlaceMapper {
 			return null;
 		}
 		
+		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
+		AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
+
 		PlaceLocation location = PlaceLocation.builder()
-				.address(toAddressEntity(request.getAddress()))
+				.address(toAddressEntity(addressRequest))
 				.locationGuide(request.getLocationGuide())
 				.placeInfo(placeInfo)
 				.build();
-		
+
 		// 좌표 설정 (GeometryUtil 사용)
 		if (request.getLatitude() != null && request.getLongitude() != null) {
 			location.setLatLng(request.getLatitude(), request.getLongitude());
@@ -346,8 +354,10 @@ public class PlaceMapper {
 			return;
 		}
 		
-		if (request.getAddress() != null) {
-			entity.setAddress(toAddressEntity(request.getAddress()));
+		if (request.getAddressData() != null) {
+			// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
+			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
+			entity.setAddress(toAddressEntity(addressRequest));
 		}
 		
 		if (request.getLatitude() != null && request.getLongitude() != null) {

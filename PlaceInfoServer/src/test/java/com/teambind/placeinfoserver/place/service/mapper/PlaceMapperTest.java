@@ -1,7 +1,8 @@
 package com.teambind.placeinfoserver.place.service.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
-import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
@@ -22,10 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PlaceMapperTest {
 
 	private PlaceMapper mapper;
+	private AddressParser addressParser;
 
 	@BeforeEach
 	void setUp() {
-		mapper = new PlaceMapper();
+		addressParser = new AddressParser(new ObjectMapper());
+		mapper = new PlaceMapper(addressParser);
 		PlaceTestFactory.resetSequence();
 	}
 
@@ -229,7 +232,7 @@ class PlaceMapperTest {
 		void toLocationEntity_Success() {
 			// Given
 			PlaceInfo placeInfo = PlaceTestFactory.createPlaceInfo();
-			AddressRequest addressRequest = AddressRequest.builder()
+			AddressRequest addressData = AddressRequest.builder()
 					.province("서울특별시")
 					.city("강남구")
 					.district("역삼동")
@@ -238,9 +241,10 @@ class PlaceMapperTest {
 					.build();
 
 			PlaceLocationRequest request = PlaceLocationRequest.builder()
+					.from(com.teambind.placeinfoserver.place.domain.enums.AddressSource.MANUAL)
+					.addressData(addressData)
 					.latitude(37.4979)
 					.longitude(127.0276)
-					.address(addressRequest)
 					.locationGuide("지하철 2호선 역삼역 3번 출구")
 					.build();
 

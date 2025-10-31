@@ -7,7 +7,6 @@ import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.service.command.PlaceLocationUpdateService;
 import com.teambind.placeinfoserver.place.service.command.PlaceRegisterService;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +40,9 @@ public class PlaceRegisterController {
 			@RequestParam PlaceOperationType type,
 			@RequestParam boolean activate,
 			@PathVariable(value = "placeId") String placeId) {
-
+		
+		
+		//TODO : Change Switch function
 		if (type == PlaceOperationType.ACTIVATE) {
 			if (activate) {
 				commandService.activatePlace(placeId);

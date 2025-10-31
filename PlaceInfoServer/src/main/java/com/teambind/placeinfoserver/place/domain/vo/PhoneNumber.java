@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  * 전화번호 Value Object
  * 전화번호의 형식을 검증하고 정규화하여 관리
- *
+ * <p>
  * 지원 형식:
  * - 일반 전화: 02-1234-5678, 031-123-4567
  * - 휴대폰: 010-1234-5678, 01012345678
@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode
 public class PhoneNumber {
-
+	
 	/**
 	 * 전화번호 정규식 패턴
 	 * - 일반: 0\d{1,2}-\d{3,4}-\d{4}
@@ -35,10 +35,10 @@ public class PhoneNumber {
 	private static final Pattern PHONE_PATTERN = Pattern.compile(
 			"^(0\\d{1,2}-?\\d{3,4}-?\\d{4}|01[016789]-?\\d{3,4}-?\\d{4}|15\\d{2}-?\\d{4})$"
 	);
-
+	
 	@Column(name = "phone_number", length = 20)
 	private String value;
-
+	
 	/**
 	 * 정적 팩토리 메서드
 	 *
@@ -50,15 +50,15 @@ public class PhoneNumber {
 		if (phoneNumber == null || phoneNumber.isBlank()) {
 			return null;
 		}
-
+		
 		String normalized = normalize(phoneNumber);
 		validate(normalized);
-
+		
 		PhoneNumber phone = new PhoneNumber();
 		phone.value = normalized;
 		return phone;
 	}
-
+	
 	/**
 	 * 전화번호 정규화
 	 * - 공백, 괄호 제거
@@ -67,7 +67,7 @@ public class PhoneNumber {
 	private static String normalize(String phoneNumber) {
 		// 공백, 괄호 제거
 		String cleaned = phoneNumber.replaceAll("[\\s()\\-]", "");
-
+		
 		// 하이픈 추가
 		if (cleaned.startsWith("02")) {
 			// 서울 (02)
@@ -98,10 +98,10 @@ public class PhoneNumber {
 				return cleaned.substring(0, 3) + "-" + cleaned.substring(3, 7) + "-" + cleaned.substring(7);
 			}
 		}
-
+		
 		return cleaned;
 	}
-
+	
 	/**
 	 * 전화번호 유효성 검증
 	 */
@@ -110,14 +110,14 @@ public class PhoneNumber {
 			throw new CustomException(ErrorCode.CONTACT_INVALID_PHONE);
 		}
 	}
-
+	
 	/**
 	 * 숫자만 반환 (하이픈 제거)
 	 */
 	public String getDigitsOnly() {
 		return value.replaceAll("-", "");
 	}
-
+	
 	/**
 	 * 국제 형식으로 변환 (+82)
 	 */
@@ -128,7 +128,7 @@ public class PhoneNumber {
 		}
 		return "+82" + digits;
 	}
-
+	
 	@Override
 	public String toString() {
 		return value;

@@ -15,9 +15,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * AdminController 통합 테스트
@@ -28,38 +29,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AdminControllerTest extends BaseIntegrationTest {
-
+	
 	@Autowired
 	private MockMvc mockMvc;
-
+	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-
+	
 	@Autowired
 	private ObjectMapper objectMapper;
-
+	
 	private PlaceInfo pendingPlace;
 	private PlaceInfo approvedPlace;
 	private PlaceInfo rejectedPlace;
-
+	
 	@BeforeEach
 	void setUp() {
 		PlaceTestFactory.resetSequence();
-
+		
 		// 테스트 데이터 준비
 		pendingPlace = PlaceTestFactory.createPendingPlaceInfo();
 		approvedPlace = PlaceTestFactory.createPlaceInfo();
 		rejectedPlace = PlaceTestFactory.createRejectedPlaceInfo();
-
+		
 		pendingPlace = placeInfoRepository.save(pendingPlace);
 		approvedPlace = placeInfoRepository.save(approvedPlace);
 		rejectedPlace = placeInfoRepository.save(rejectedPlace);
 	}
-
+	
 	@Nested
 	@DisplayName("업체 승인 API 테스트")
 	class ApproveTest {
-
+		
 		@Test
 		@Order(1)
 		@DisplayName("업체 승인 - 성공")
@@ -70,12 +71,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
 		}
-
+		
 		@Test
 		@Order(2)
 		@DisplayName("이미 승인된 업체 재승인 - 성공 (멱등성)")
@@ -86,12 +87,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(approvedPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
 		}
-
+		
 		@Test
 		@Order(3)
 		@DisplayName("거부된 업체 승인 - 성공")
@@ -102,17 +103,17 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(rejectedPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("업체 거부 API 테스트")
 	class RejectTest {
-
+		
 		@Test
 		@Order(4)
 		@DisplayName("업체 거부 - 성공")
@@ -123,12 +124,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.REJECTED);
 		}
-
+		
 		@Test
 		@Order(5)
 		@DisplayName("승인된 업체 거부 - 성공")
@@ -139,12 +140,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(approvedPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.REJECTED);
 		}
-
+		
 		@Test
 		@Order(6)
 		@DisplayName("이미 거부된 업체 재거부 - 성공 (멱등성)")
@@ -155,17 +156,17 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo updatedPlace = placeInfoRepository.findById(rejectedPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.REJECTED);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("업체 삭제 API 테스트")
 	class DeleteTest {
-
+		
 		@Test
 		@Order(7)
 		@DisplayName("관리자 권한으로 업체 삭제 - 성공")
@@ -174,12 +175,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증 - 소프트 삭제
 			PlaceInfo deletedPlace = placeInfoRepository.findById(approvedPlace.getId()).orElseThrow();
 			assertThat(deletedPlace.isDeleted()).isTrue();
 		}
-
+		
 		@Test
 		@Order(8)
 		@DisplayName("승인 대기 중인 업체 삭제 - 성공")
@@ -188,12 +189,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo deletedPlace = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(deletedPlace.isDeleted()).isTrue();
 		}
-
+		
 		@Test
 		@Order(9)
 		@DisplayName("거부된 업체 삭제 - 성공")
@@ -202,12 +203,12 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.contentType(MediaType.APPLICATION_JSON))
 					.andDo(print())
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo deletedPlace = placeInfoRepository.findById(rejectedPlace.getId()).orElseThrow();
 			assertThat(deletedPlace.isDeleted()).isTrue();
 		}
-
+		
 		@Test
 		@Order(10)
 		@DisplayName("존재하지 않는 업체 삭제 - 실패")
@@ -218,11 +219,11 @@ class AdminControllerTest extends BaseIntegrationTest {
 					.andExpect(status().is4xxClientError());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("잘못된 요청 테스트")
 	class InvalidRequestTest {
-
+		
 		@Test
 		@Order(11)
 		@DisplayName("잘못된 타입 파라미터 - 실패")
@@ -234,7 +235,7 @@ class AdminControllerTest extends BaseIntegrationTest {
 					.andDo(print())
 					.andExpect(status().isBadRequest());
 		}
-
+		
 		@Test
 		@Order(12)
 		@DisplayName("존재하지 않는 업체 승인 - 실패")
@@ -247,11 +248,11 @@ class AdminControllerTest extends BaseIntegrationTest {
 					.andExpect(status().is4xxClientError());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("승인 워크플로우 통합 테스트")
 	class ApprovalWorkflowTest {
-
+		
 		@Test
 		@Order(13)
 		@DisplayName("승인 -> 거부 -> 재승인 워크플로우")
@@ -261,29 +262,29 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.param("type", "approve")
 							.param("contents", "true"))
 					.andExpect(status().isNoContent());
-
+			
 			PlaceInfo place1 = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(place1.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
-
+			
 			// 2. 거부
 			mockMvc.perform(patch("/api/v1/admin/places/{placeId}", pendingPlace.getId())
 							.param("type", "approve")
 							.param("contents", "false"))
 					.andExpect(status().isNoContent());
-
+			
 			PlaceInfo place2 = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(place2.getApprovalStatus()).isEqualTo(ApprovalStatus.REJECTED);
-
+			
 			// 3. 재승인
 			mockMvc.perform(patch("/api/v1/admin/places/{placeId}", pendingPlace.getId())
 							.param("type", "approve")
 							.param("contents", "true"))
 					.andExpect(status().isNoContent());
-
+			
 			PlaceInfo place3 = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(place3.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
 		}
-
+		
 		@Test
 		@Order(14)
 		@DisplayName("승인 후 삭제")
@@ -293,17 +294,17 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.param("type", "approve")
 							.param("contents", "true"))
 					.andExpect(status().isNoContent());
-
+			
 			// 2. 삭제
 			mockMvc.perform(delete("/api/v1/admin/places/{placeId}", pendingPlace.getId()))
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo deletedPlace = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(deletedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.APPROVED);
 			assertThat(deletedPlace.isDeleted()).isTrue();
 		}
-
+		
 		@Test
 		@Order(15)
 		@DisplayName("거부 후 삭제")
@@ -313,11 +314,11 @@ class AdminControllerTest extends BaseIntegrationTest {
 							.param("type", "approve")
 							.param("contents", "false"))
 					.andExpect(status().isNoContent());
-
+			
 			// 2. 삭제
 			mockMvc.perform(delete("/api/v1/admin/places/{placeId}", pendingPlace.getId()))
 					.andExpect(status().isNoContent());
-
+			
 			// 검증
 			PlaceInfo deletedPlace = placeInfoRepository.findById(pendingPlace.getId()).orElseThrow();
 			assertThat(deletedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.REJECTED);

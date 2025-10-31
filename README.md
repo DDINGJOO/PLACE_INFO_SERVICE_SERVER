@@ -117,7 +117,8 @@
 #### Coordinates (좌표)
 
 ```java
-Coordinates.of(37.5665, 126.9780)
+Coordinates.of(37.5665,126.9780)
+
 double distance = coords1.distanceTo(coords2); // Haversine formula
 ```
 
@@ -279,7 +280,10 @@ Url website = Url.of("example.com");
 #### 1. place_info (장소 정보)
 
 ```sql
-id                  VARCHAR(50) PRIMARY KEY   -- place_xxxxxxxxxxxxxxxx
+id
+VARCHAR
+    (50)
+    PRIMARY KEY   -- place_xxxxxxxxxxxxxxxx
 user_id             VARCHAR(100) NOT NULL     -- 소유자 ID (외부 서비스)
 place_name          VARCHAR(100) NOT NULL     -- 장소명
 description         VARCHAR(500)              -- 소개
@@ -292,13 +296,14 @@ review_count        INT DEFAULT 0             -- 리뷰 개수
 deleted_at          TIMESTAMP                 -- 삭제 일시 (소프트 삭제)
 deleted_by          VARCHAR(100)              -- 삭제자 ID
 created_at          TIMESTAMP NOT NULL        -- 생성 일시
-updated_at          TIMESTAMP NOT NULL        -- 수정 일시
+updated_at          TIMESTAMP NOT NULL -- 수정 일시
 ```
 
 #### 2. place_location (위치 정보)
 
 ```sql
-id                  BIGINT AUTO_INCREMENT PRIMARY KEY
+id
+BIGINT AUTO_INCREMENT PRIMARY KEY
 place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
 coordinates         POINT NOT NULL SRID 4326     -- PostGIS 좌표 (WGS84)
 sido_code           VARCHAR(20)                  -- 시/도 코드
@@ -316,7 +321,8 @@ SPATIAL INDEX idx_coordinates (coordinates)
 #### 3. place_contact (연락처 정보)
 
 ```sql
-id                  BIGINT AUTO_INCREMENT PRIMARY KEY
+id
+BIGINT AUTO_INCREMENT PRIMARY KEY
 place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
 phone_number        VARCHAR(20)                  -- 전화번호
 email               VARCHAR(100)                 -- 이메일
@@ -326,7 +332,8 @@ website             VARCHAR(200)                 -- 웹사이트
 #### 4. place_parking (주차 정보)
 
 ```sql
-id                  BIGINT AUTO_INCREMENT PRIMARY KEY
+id
+BIGINT AUTO_INCREMENT PRIMARY KEY
 place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
 parking_available   BOOLEAN DEFAULT FALSE        -- 주차 가능 여부
 parking_fee         VARCHAR(100)                 -- 주차 요금 정보
@@ -336,7 +343,8 @@ parking_description VARCHAR(500)                 -- 주차 설명
 #### 5. place_image (이미지 정보)
 
 ```sql
-id                  BIGINT AUTO_INCREMENT PRIMARY KEY
+id
+BIGINT AUTO_INCREMENT PRIMARY KEY
 place_id            VARCHAR(50) NOT NULL         -- FK to place_info
 image_url           VARCHAR(500) NOT NULL        -- 이미지 URL
 image_sequence      INT                          -- 순서 (0부터 시작)
@@ -350,19 +358,23 @@ INDEX idx_sequence (place_id, image_sequence)
 #### 6. keyword (키워드)
 
 ```sql
-id                  BIGINT AUTO_INCREMENT PRIMARY KEY
+id
+BIGINT AUTO_INCREMENT PRIMARY KEY
 keyword_name        VARCHAR(50) UNIQUE NOT NULL  -- 키워드명
 ```
 
 #### 7. place_keywords (장소-키워드 매핑)
 
 ```sql
-place_id            VARCHAR(50) NOT NULL         -- FK to place_info
+place_id
+VARCHAR
+    (50)
+    NOT NULL         -- FK to place_info
 keyword_id          BIGINT NOT NULL              -- FK to keyword
 PRIMARY KEY (place_id, keyword_id)
 
 -- 인덱스
-INDEX idx_keyword_id (keyword_id)  -- 역방향 조회
+INDEX idx_keyword_id (keyword_id) -- 역방향 조회
 ```
 
 ### ERD
@@ -738,7 +750,12 @@ Response: 204 No Content
 **카테고리 목록**
 
 ```json
-["연습실", "공연장", "스튜디오", "녹음실"]
+[
+  "연습실",
+  "공연장",
+  "스튜디오",
+  "녹음실"
+]
 ```
 
 #### GET /api/v1/places/enums/place-types
@@ -746,7 +763,12 @@ Response: 204 No Content
 **장소 유형 목록**
 
 ```json
-["음악", "댄스", "공연", "전시"]
+[
+  "음악",
+  "댄스",
+  "공연",
+  "전시"
+]
 ```
 
 ---
@@ -978,25 +1000,26 @@ Response: 204 No Content
 #### Testcontainers 설정
 
 ```java
+
 @SpringBootTest
 @Import(JpaAuditingTestConfig.class)
 public abstract class BaseIntegrationTest {
-
-    private static final PostgreSQLContainer<?> postgresContainer;
-    private static final RedisContainer redisContainer;
-
-    static {
-        // PostgreSQL with PostGIS
-        postgresContainer = new PostgreSQLContainer<>("postgis/postgis:16-3.4")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-        postgresContainer.start();
-
-        // Redis
-        redisContainer = new RedisContainer(DockerImageName.parse("redis:7-alpine"));
-        redisContainer.start();
-    }
+	
+	private static final PostgreSQLContainer<?> postgresContainer;
+	private static final RedisContainer redisContainer;
+	
+	static {
+		// PostgreSQL with PostGIS
+		postgresContainer = new PostgreSQLContainer<>("postgis/postgis:16-3.4")
+				.withDatabaseName("testdb")
+				.withUsername("test")
+				.withPassword("test");
+		postgresContainer.start();
+		
+		// Redis
+		redisContainer = new RedisContainer(DockerImageName.parse("redis:7-alpine"));
+		redisContainer.start();
+	}
 }
 ```
 
@@ -1069,19 +1092,20 @@ open build/reports/tests/test/index.html
 
 ```sql
 CREATE INDEX idx_place_location_coordinates
-ON place_location
-USING GIST(coordinates);
+    ON place_location
+    USING GIST(coordinates);
 ```
 
 **반경 검색 최적화**:
 
 ```sql
-SELECT * FROM place_location
+SELECT *
+FROM place_location
 WHERE ST_DWithin(
-    coordinates::geography,
-    ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-    ?
-);
+              coordinates::geography,
+              ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+              ?
+      );
 -- GIST 인덱스를 통해 빠른 검색
 ```
 
@@ -1092,12 +1116,11 @@ WHERE ST_DWithin(
 ```sql
 -- place_info 테이블
 CREATE INDEX idx_place_info_composite
-ON place_info(is_active, approval_status, deleted_at, created_at DESC);
+    ON place_info (is_active, approval_status, deleted_at, created_at DESC);
 
 -- 커버링 인덱스
 CREATE INDEX idx_place_info_covering
-ON place_info(id, place_name, category, rating_average, review_count)
-WHERE is_active = true AND approval_status = 'APPROVED' AND deleted_at IS NULL;
+    ON place_info (id, place_name, category, rating_average, review_count) WHERE is_active = true AND approval_status = 'APPROVED' AND deleted_at IS NULL;
 ```
 
 ### 3. QueryDSL 최적화
@@ -1106,27 +1129,27 @@ WHERE is_active = true AND approval_status = 'APPROVED' AND deleted_at IS NULL;
 
 ```java
 public Slice<PlaceSearchResult> search(PlaceSearchRequest request) {
-    BooleanBuilder builder = new BooleanBuilder();
-
-    // 조건이 있을 때만 추가 (불필요한 조건 제거)
-    if (request.hasKeyword()) {
-        builder.and(placeInfo.placeName.containsIgnoreCase(request.getKeyword())
-            .or(placeInfo.description.containsIgnoreCase(request.getKeyword())));
-    }
-
-    if (request.hasCategory()) {
-        builder.and(placeInfo.category.eq(request.getCategory()));
-    }
-
-    // Fetch Join으로 N+1 방지
-    return queryFactory
-        .selectFrom(placeInfo)
-        .leftJoin(placeInfo.location).fetchJoin()
-        .leftJoin(placeInfo.images).fetchJoin()
-        .where(builder)
-        .orderBy(placeInfo.createdAt.desc())
-        .limit(request.getSize() + 1)
-        .fetch();
+	BooleanBuilder builder = new BooleanBuilder();
+	
+	// 조건이 있을 때만 추가 (불필요한 조건 제거)
+	if (request.hasKeyword()) {
+		builder.and(placeInfo.placeName.containsIgnoreCase(request.getKeyword())
+				.or(placeInfo.description.containsIgnoreCase(request.getKeyword())));
+	}
+	
+	if (request.hasCategory()) {
+		builder.and(placeInfo.category.eq(request.getCategory()));
+	}
+	
+	// Fetch Join으로 N+1 방지
+	return queryFactory
+			.selectFrom(placeInfo)
+			.leftJoin(placeInfo.location).fetchJoin()
+			.leftJoin(placeInfo.images).fetchJoin()
+			.where(builder)
+			.orderBy(placeInfo.createdAt.desc())
+			.limit(request.getSize() + 1)
+			.fetch();
 }
 ```
 
@@ -1136,14 +1159,18 @@ public Slice<PlaceSearchResult> search(PlaceSearchRequest request) {
 
 ```java
 // ❌ Offset 방식 (느림)
-SELECT * FROM place_info
-ORDER BY created_at DESC
+SELECT *
+FROM place_info
+ORDER BY
+created_at DESC
 OFFSET 10000 LIMIT 10;  // 10000개를 건너뛰어야 함
 
 // ✅ Cursor 방식 (빠름)
-SELECT * FROM place_info
+SELECT *
+FROM place_info
 WHERE created_at < '2025-10-22T10:00:00'
-ORDER BY created_at DESC
+ORDER BY
+created_at DESC
 LIMIT 10;  // 바로 조회
 ```
 
@@ -1154,19 +1181,19 @@ LIMIT 10;  // 바로 조회
 ```java
 // 인기 장소 (1시간 TTL)
 @Cacheable(value = "popularPlaces", key = "#size")
-public List<PlaceInfo> getPopularPlaces(int size) { ... }
+public List<PlaceInfo> getPopularPlaces(int size) { ...}
 
 // 위치 기반 검색 (10분 TTL)
 @Cacheable(
-    value = "locationSearch",
-    key = "#lat + ':' + #lon + ':' + #radius",
-    condition = "#cursor == null"
+		value = "locationSearch",
+		key = "#lat + ':' + #lon + ':' + #radius",
+		condition = "#cursor == null"
 )
-public PlaceSearchResponse searchByLocation(...) { ... }
+public PlaceSearchResponse searchByLocation(...) { ...}
 
 // 지역별 장소 개수 (1일 TTL)
 @Cacheable(value = "regionCount", key = "#regionCode")
-public Long countByRegion(String regionCode) { ... }
+public Long countByRegion(String regionCode) { ...}
 ```
 
 ### 6. N+1 문제 방지
@@ -1176,15 +1203,20 @@ public Long countByRegion(String regionCode) { ... }
 ```java
 // ❌ N+1 문제 발생
 List<PlaceInfo> places = placeRepository.findAll();
-for (PlaceInfo place : places) {
-    place.getImages().size();  // 각 장소마다 쿼리 발생
+for(
+PlaceInfo place :places){
+		place.
+
+getImages().
+
+size();  // 각 장소마다 쿼리 발생
 }
 
 // ✅ Fetch Join으로 해결
 @Query("SELECT p FROM PlaceInfo p " +
-       "LEFT JOIN FETCH p.images " +
-       "LEFT JOIN FETCH p.location " +
-       "WHERE p.isActive = true")
+		"LEFT JOIN FETCH p.images " +
+		"LEFT JOIN FETCH p.location " +
+		"WHERE p.isActive = true")
 List<PlaceInfo> findAllWithImages();
 ```
 
@@ -1428,7 +1460,7 @@ services:
       - place-info-network
       - infra-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

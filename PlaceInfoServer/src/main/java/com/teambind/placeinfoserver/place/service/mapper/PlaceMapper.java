@@ -235,13 +235,13 @@ public class PlaceMapper {
 		
 		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 		AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
-
+		
 		PlaceLocation location = PlaceLocation.builder()
 				.address(toAddressEntity(addressRequest))
 				.locationGuide(request.getLocationGuide())
 				.placeInfo(placeInfo)
 				.build();
-
+		
 		// 좌표 설정 (GeometryUtil 사용)
 		if (request.getLatitude() != null && request.getLongitude() != null) {
 			location.setLatLng(request.getLatitude(), request.getLongitude());

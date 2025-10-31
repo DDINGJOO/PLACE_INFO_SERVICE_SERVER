@@ -18,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * PlaceSearchController 통합 테스트
@@ -31,23 +33,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceSearchControllerTest extends BaseIntegrationTest {
-
+	
 	@Autowired
 	private MockMvc mockMvc;
-
+	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-
+	
 	@Autowired
 	private ObjectMapper objectMapper;
-
+	
 	private PlaceInfo testPlace1;
 	private PlaceInfo testPlace2;
-
+	
 	@BeforeEach
 	void setUp() {
 		PlaceTestFactory.resetSequence();
-
+		
 		// 테스트 데이터 준비
 		testPlace1 = PlaceTestFactory.createPlaceInfoWithLocation(
 				"테스트 연습실 1", 37.4979, 127.0276
@@ -55,14 +57,14 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 		testPlace2 = PlaceTestFactory.createPlaceInfoWithLocation(
 				"테스트 스튜디오 2", 37.5000, 127.0300
 		);
-
+		
 		placeInfoRepository.saveAll(List.of(testPlace1, testPlace2));
 	}
-
+	
 	@Nested
 	@DisplayName("통합 검색 API 테스트")
 	class SearchTest {
-
+		
 		@Test
 		@Order(1)
 		@DisplayName("기본 검색 - 성공")
@@ -77,7 +79,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.metadata").exists())
 					.andExpect(jsonPath("$.hasNext").exists());
 		}
-
+		
 		@Test
 		@Order(2)
 		@DisplayName("키워드 검색 - 성공")
@@ -91,7 +93,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray())
 					.andExpect(jsonPath("$.items", hasSize(greaterThanOrEqualTo(1))));
 		}
-
+		
 		@Test
 		@Order(3)
 		@DisplayName("장소명 검색 - 성공")
@@ -104,7 +106,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(4)
 		@DisplayName("정렬 기준 적용 - 성공")
@@ -119,11 +121,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("위치 기반 검색 API 테스트")
 	class LocationSearchTest {
-
+		
 		@Test
 		@Order(5)
 		@DisplayName("위치 기반 검색 - 성공")
@@ -133,7 +135,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			request.setLongitude(127.0276);
 			request.setRadius(5000);
 			request.setSize(10);
-
+			
 			mockMvc.perform(post("/api/v1/places/search/location")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(request)))
@@ -142,7 +144,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray())
 					.andExpect(jsonPath("$.metadata").exists());
 		}
-
+		
 		@Test
 		@Order(6)
 		@DisplayName("위치 기반 검색 with 키워드 - 성공")
@@ -153,7 +155,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			request.setRadius(10000);
 			request.setKeyword("연습실");
 			request.setSize(10);
-
+			
 			mockMvc.perform(post("/api/v1/places/search/location")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(request)))
@@ -162,11 +164,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("지역별 검색 API 테스트")
 	class RegionSearchTest {
-
+		
 		@Test
 		@Order(7)
 		@DisplayName("지역별 검색 - 시/도만 - 성공")
@@ -179,7 +181,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(8)
 		@DisplayName("지역별 검색 - 시/도, 시/군/구 - 성공")
@@ -193,7 +195,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(9)
 		@DisplayName("지역별 검색 - 전체 주소 - 성공")
@@ -209,11 +211,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("인기 장소 조회 API 테스트")
 	class PopularPlacesTest {
-
+		
 		@Test
 		@Order(10)
 		@DisplayName("인기 장소 조회 - 기본 사이즈")
@@ -224,7 +226,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(11)
 		@DisplayName("인기 장소 조회 - 커스텀 사이즈")
@@ -237,11 +239,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("최신 장소 조회 API 테스트")
 	class RecentPlacesTest {
-
+		
 		@Test
 		@Order(12)
 		@DisplayName("최신 장소 조회 - 기본 사이즈")
@@ -252,7 +254,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(13)
 		@DisplayName("최신 장소 조회 - 커스텀 사이즈")
@@ -265,11 +267,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("검색 결과 개수 조회 API 테스트")
 	class CountSearchResultsTest {
-
+		
 		@Test
 		@Order(14)
 		@DisplayName("검색 결과 개수 조회 - 성공")
@@ -278,7 +280,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.keyword("연습실")
 					.size(10)
 					.build();
-
+			
 			mockMvc.perform(post("/api/v1/places/search/count")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(request)))
@@ -287,7 +289,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.count").exists())
 					.andExpect(jsonPath("$.count").isNumber());
 		}
-
+		
 		@Test
 		@Order(15)
 		@DisplayName("검색 결과 개수 조회 - 조건 없음")
@@ -295,7 +297,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceSearchRequest.builder()
 					.size(10)
 					.build();
-
+			
 			mockMvc.perform(post("/api/v1/places/search/count")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(request)))
@@ -305,11 +307,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.count", greaterThanOrEqualTo(2)));
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("페이징 테스트")
 	class PagingTest {
-
+		
 		@Test
 		@Order(16)
 		@DisplayName("페이지 크기 적용 - 성공")
@@ -324,11 +326,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.hasNext").exists());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("복합 조건 검색 테스트")
 	class ComplexSearchTest {
-
+		
 		@Test
 		@Order(17)
 		@DisplayName("복합 조건 검색 - 키워드 + 지역")
@@ -343,7 +345,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(18)
 		@DisplayName("복합 조건 검색 - 카테고리 + 주차 가능")

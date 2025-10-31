@@ -24,13 +24,11 @@ import java.util.Map;
 public class PlaceRegisterController {
 	private final PlaceRegisterService commandService;
 	private final PlaceLocationUpdateService locationService;
-
-
 	
 	
 	@PostMapping()
 	public ResponseEntity<PlaceInfoResponse> register(@Valid @RequestBody PlaceRegisterRequest req) {
-
+		
 		PlaceInfoResponse response = commandService.registerPlace(req);
 		return ResponseEntity.ok(response);
 	}
@@ -51,7 +49,7 @@ public class PlaceRegisterController {
 			}
 			return ResponseEntity.noContent().build();
 		}
-
+		
 		return ResponseEntity.badRequest().build();
 	}
 	
@@ -59,7 +57,7 @@ public class PlaceRegisterController {
 	public ResponseEntity<Map<String, String>> registerLocation(
 			@PathVariable(value = "placeId") String placeId,
 			@Valid @RequestBody PlaceLocationRequest req) {
-
+		
 		String responseId = locationService.updateLocation(placeId, req);
 		return ResponseEntity.ok(
 				Map.of("placeId", responseId)
@@ -71,6 +69,6 @@ public class PlaceRegisterController {
 		commandService.deletePlace(placeId, "OWNER");
 		return ResponseEntity.noContent().build();
 	}
-
+	
 	
 }

@@ -7,37 +7,44 @@ Value Object는 **DDD (Domain-Driven Design)**의 핵심 빌딩 블록으로, �
 ## Value Object의 특징
 
 ### 1. 불변성 (Immutability)
+
 - 생성 후 상태 변경 불가
 - Thread-safe 보장
 - 안전한 공유 가능
 
 ### 2. 값 기반 동등성 (Value Equality)
+
 - ID가 아닌 값으로 비교
 - `equals()`, `hashCode()` 오버라이드
 - `@EqualsAndHashCode` 사용
 
 ### 3. 자체 검증 (Self-Validation)
+
 - 생성 시점에 유효성 검증
 - 항상 유효한 상태 보장
 - 검증 로직의 중앙화
 
 ### 4. 비즈니스 로직 포함
+
 - 도메인 개념을 명확하게 표현
 - Primitive Obsession 제거
 - 의미 있는 메서드 제공
 
 ### 5. Side-Effect Free
+
 - 메서드 호출이 외부 상태를 변경하지 않음
 - 순수 함수 (Pure Function)
 
 ## 사용 가능한 Value Objects
 
 ### 1. Coordinates (좌표)
+
 **파일**: `Coordinates.java`
 
 **용도**: 위도(latitude)와 경도(longitude)를 하나의 개념으로 관리
 
 **생성**:
+
 ```java
 // 정적 팩토리 메서드 사용 (검증 포함)
 Coordinates coords = Coordinates.of(37.5665, 126.9780);
@@ -47,11 +54,13 @@ Coordinates invalid = Coordinates.of(91.0, 180.5);  // ❌ CustomException
 ```
 
 **주요 기능**:
+
 - 좌표 유효성 검증 (-90~90, -180~180)
 - 두 좌표 간 거리 계산 (Haversine 공식)
 - WGS84 좌표계 (SRID 4326)
 
 **예제**:
+
 ```java
 Coordinates seoul = Coordinates.of(37.5665, 126.9780);
 Coordinates busan = Coordinates.of(35.1796, 129.0756);
@@ -62,11 +71,13 @@ System.out.println(distance + "m");
 ```
 
 ### 2. Distance (거리)
+
 **파일**: `Distance.java`
 
 **용도**: 거리를 타입 안전하게 관리하고 다양한 단위로 변환
 
 **생성**:
+
 ```java
 // 다양한 단위로 생성 가능
 Distance d1 = Distance.ofMeters(5000);
@@ -79,12 +90,14 @@ Distance maxRadius = Distance.MAX_SEARCH_RADIUS;          // 50km
 ```
 
 **주요 기능**:
+
 - 단위 변환 (미터, 킬로미터, 마일)
 - 거리 연산 (더하기, 빼기)
 - 비교 연산 (크다, 작다)
 - 사람이 읽기 쉬운 형식
 
 **예제**:
+
 ```java
 Distance walk = Distance.ofMeters(1500);
 Distance bus = Distance.ofKilometers(5);
@@ -104,11 +117,13 @@ if (walk.isLessThan(bus)) {
 ```
 
 ### 3. Address (주소)
+
 **파일**: `Address.java`
 
 **용도**: 주소 정보를 하나의 개념으로 관리
 
 **생성**:
+
 ```java
 Address address = Address.builder()
     .province("서울특별시")
@@ -121,11 +136,13 @@ Address address = Address.builder()
 ```
 
 **주요 기능**:
+
 - 짧은 주소 반환 (시/구/동)
 - 상세 주소 포함 전체 주소
 - 주소 유효성 확인
 
 **예제**:
+
 ```java
 String shortAddr = address.getShortAddress();
 // "서울특별시 강남구 역삼동"
@@ -137,11 +154,13 @@ boolean valid = address.isValid();  // true
 ```
 
 ### 4. PhoneNumber (전화번호)
+
 **파일**: `PhoneNumber.java`
 
 **용도**: 전화번호 형식 검증 및 정규화
 
 **생성**:
+
 ```java
 // 다양한 형식 지원
 PhoneNumber phone1 = PhoneNumber.of("02-1234-5678");
@@ -153,17 +172,20 @@ PhoneNumber invalid = PhoneNumber.of("123");  // ❌ CustomException
 ```
 
 **주요 기능**:
+
 - 자동 정규화 (하이픈 추가)
 - 형식 검증 (정규식)
 - 숫자만 추출
 - 국제 형식 변환 (+82)
 
 **지원 형식**:
+
 - 일반 전화: 02-1234-5678, 031-123-4567
 - 휴대폰: 010-1234-5678
 - 특수번호: 1588-1234, 1577-1234
 
 **예제**:
+
 ```java
 PhoneNumber phone = PhoneNumber.of("01012345678");
 
@@ -173,11 +195,13 @@ System.out.println(phone.toInternationalFormat()); // "+821012345678"
 ```
 
 ### 5. Email (이메일)
+
 **파일**: `Email.java`
 
 **용도**: 이메일 주소 형식 검증 및 관리
 
 **생성**:
+
 ```java
 Email email = Email.of("user@example.com");
 
@@ -189,12 +213,14 @@ Email invalid = Email.of("not-an-email");  // ❌ CustomException
 ```
 
 **주요 기능**:
+
 - RFC 5322 표준 준수
 - 자동 정규화 (소문자, 공백 제거)
 - 도메인/로컬파트 추출
 - 마스킹 (개인정보 보호)
 
 **예제**:
+
 ```java
 Email email = Email.of("testuser@example.com");
 
@@ -204,11 +230,13 @@ System.out.println(email.getMasked());      // "te**@example.com"
 ```
 
 ### 6. Url (URL)
+
 **파일**: `Url.java`
 
 **용도**: URL 형식 검증 및 정규화
 
 **생성**:
+
 ```java
 // 프로토콜 자동 추가
 Url url1 = Url.of("www.example.com");        // "https://www.example.com"
@@ -219,12 +247,14 @@ Url invalid = Url.of("not a url");  // ❌ CustomException
 ```
 
 **주요 기능**:
+
 - URL 파싱 및 검증
 - 프로토콜 자동 추가 (https://)
 - 도메인/경로/프로토콜 추출
 - HTTPS 여부 확인
 
 **예제**:
+
 ```java
 Url url = Url.of("https://www.example.com/path/to/page");
 
@@ -237,15 +267,18 @@ System.out.println(url.isSecure());     // true
 ## Value Objects in Events
 
 ### ImagesChangeEventWrapper
+
 **파일**: `events/event/ImagesChangeEventWrapper.java`
 
 **특징**:
+
 - 불변 이벤트 객체
 - Jackson 직렬화/역직렬화 지원
 - 방어적 복사 (Defensive Copy)
 - 불변 리스트 반환
 
 **예제**:
+
 ```java
 ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
     .referenceId("place-123")
@@ -265,6 +298,7 @@ event.getImages().add(...);  // ❌ UnsupportedOperationException
 ## 사용 가이드
 
 ### 1. 정적 팩토리 메서드 패턴
+
 ```java
 // ✅ 권장: 정적 팩토리 메서드 사용
 Coordinates coords = Coordinates.of(37.5665, 126.9780);
@@ -275,6 +309,7 @@ PhoneNumber phone = PhoneNumber.of("010-1234-5678");
 ```
 
 ### 2. 검증 로직의 중앙화
+
 ```java
 // VO를 사용하면 검증 로직이 한 곳에 집중됨
 public void updateLocation(Coordinates coords) {
@@ -291,6 +326,7 @@ public void updateLocation(Double lat, Double lon) {
 ```
 
 ### 3. Primitive Obsession 제거
+
 ```java
 // ❌ Before: Primitive Obsession
 public PlaceSearchResponse search(Double lat, Double lon, Integer radius) {
@@ -307,6 +343,7 @@ public PlaceSearchResponse search(Coordinates coords, Distance radius) {
 ```
 
 ### 4. 비즈니스 로직 캡슐화
+
 ```java
 // ✅ VO에 비즈니스 로직 포함
 Coordinates seoul = Coordinates.of(37.5665, 126.9780);
@@ -324,6 +361,7 @@ double distance = calculateDistance(
 ## Entity에서 사용하기
 
 ### @Embeddable 활용
+
 ```java
 @Entity
 public class PlaceLocation {
@@ -344,6 +382,7 @@ public class PlaceLocation {
 ```
 
 ### 일반 필드로 사용
+
 ```java
 @Entity
 public class PlaceContact {
@@ -365,6 +404,7 @@ public class PlaceContact {
 ## 모범 사례
 
 ### DO ✅
+
 ```java
 // 1. 정적 팩토리 메서드 사용
 Coordinates coords = Coordinates.of(37.5665, 126.9780);
@@ -387,6 +427,7 @@ boolean isNear = distance.isLessThan(Distance.ofKilometers(5));
 ```
 
 ### DON'T ❌
+
 ```java
 // 1. VO를 가변 객체로 만들기
 public class BadVO {
@@ -416,6 +457,7 @@ public Coordinates getCoordinates() {
 ## 테스트 작성
 
 ### 단위 테스트 예제
+
 ```java
 @Test
 void coordinates_생성_성공() {
@@ -462,17 +504,18 @@ void distance_연산_성공() {
 
 ## Value Object vs Entity
 
-| 특징 | Value Object | Entity |
-|------|--------------|--------|
-| 식별자 | 없음 | 있음 (ID) |
-| 동등성 | 값 기반 | ID 기반 |
-| 불변성 | 불변 | 가변 |
-| 생명주기 | Entity에 종속 | 독립적 |
-| 예제 | Coordinates, Distance | PlaceInfo, User |
+| 특징   | Value Object          | Entity          |
+|------|-----------------------|-----------------|
+| 식별자  | 없음                    | 있음 (ID)         |
+| 동등성  | 값 기반                  | ID 기반           |
+| 불변성  | 불변                    | 가변              |
+| 생명주기 | Entity에 종속            | 독립적             |
+| 예제   | Coordinates, Distance | PlaceInfo, User |
 
 ## 향후 계획
 
 ### Phase 1 (완료)
+
 - ✅ Coordinates VO
 - ✅ Distance VO
 - ✅ Address VO
@@ -482,12 +525,14 @@ void distance_연산_성공() {
 - ✅ Event VO (불변성 개선)
 
 ### Phase 2 (예정)
+
 - [ ] Money VO (금액, 통화)
 - [ ] DateRange VO (날짜 범위)
 - [ ] BusinessHours VO (영업시간)
 - [ ] Rating VO (평점)
 
 ### Phase 3 (장기)
+
 - [ ] VO Converter 자동 생성
 - [ ] Custom Validation Annotation
 - [ ] VO Factory 패턴 도입

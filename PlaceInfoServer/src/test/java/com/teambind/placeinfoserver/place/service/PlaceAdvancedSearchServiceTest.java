@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.*;
 @Transactional
 @DisplayName("PlaceQueryService 통합 테스트")
 class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
-
+	
 	@Autowired
 	private PlaceQueryService searchService;
 	

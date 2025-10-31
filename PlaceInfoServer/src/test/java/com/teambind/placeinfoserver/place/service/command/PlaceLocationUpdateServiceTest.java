@@ -24,24 +24,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
-
+	
 	@Autowired
 	private PlaceLocationUpdateService locationUpdateService;
-
+	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-
+	
 	private PlaceInfo testPlace;
-
+	
 	@BeforeEach
 	void setUp() {
 		PlaceTestFactory.resetSequence();
-
+		
 		// 테스트 데이터 준비
 		testPlace = PlaceTestFactory.createPlaceInfo();
 		testPlace = placeInfoRepository.save(testPlace);
 	}
-
+	
 	// 헬퍼 메서드
 	private PlaceLocationRequest createLocationRequest(
 			double latitude, double longitude,
@@ -55,7 +55,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 				.addressDetail("테스트빌딩")
 				.postalCode("12345")
 				.build();
-
+		
 		return PlaceLocationRequest.builder()
 				.from(AddressSource.MANUAL)
 				.addressData(addressData)
@@ -64,11 +64,11 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 				.locationGuide("테스트 위치 안내")
 				.build();
 	}
-
+	
 	@Nested
 	@DisplayName("좌표 시스템 테스트")
 	class CoordinateSystemTest {
-
+		
 		@Test
 		@Order(5)
 		@DisplayName("PostGIS Point 객체 생성 - 성공")
@@ -77,10 +77,10 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					37.4979, 127.0276, "서울특별시", "강남구", "역삼동"
 			);
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getCoordinates()).isNotNull();
@@ -88,7 +88,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			assertThat(updatedPlace.getLocation().getCoordinates().getY()).isEqualTo(37.4979);
 			assertThat(updatedPlace.getLocation().getCoordinates().getSRID()).isEqualTo(4326);
 		}
-
+		
 		@Test
 		@Order(6)
 		@DisplayName("위도/경도 필드 동기화 - 성공")
@@ -98,10 +98,10 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.latitude(35.1796)
 					.longitude(129.0756)
 					.build();
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(35.1796);
@@ -110,11 +110,11 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			assertThat(updatedPlace.getLocation().getCoordinates().getX()).isEqualTo(129.0756);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("예외 처리 테스트")
 	class ExceptionTest {
-
+		
 		@Test
 		@Order(7)
 		@DisplayName("존재하지 않는 업체 - 예외 발생")
@@ -123,17 +123,17 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					37.5665, 126.9780, "서울특별시", "중구", "명동"
 			);
-
+			
 			// When & Then
 			assertThatThrownBy(() -> locationUpdateService.updateLocation("invalid_place_id", request))
 					.isInstanceOf(CustomException.class);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("트랜잭션 및 영속성 테스트")
 	class TransactionTest {
-
+		
 		@Test
 		@Order(8)
 		@DisplayName("더티 체킹으로 변경사항 자동 반영")
@@ -144,16 +144,16 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.latitude(37.5000)
 					.longitude(127.0500)
 					.build();
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isNotEqualTo(originalLat);
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5000);
 		}
-
+		
 		@Test
 		@Order(9)
 		@DisplayName("여러 번 업데이트 - 마지막 상태 유지")
@@ -165,32 +165,32 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.longitude(127.0000)
 					.build();
 			locationUpdateService.updateLocation(testPlace.getId(), request1);
-
+			
 			// 두 번째 업데이트
 			PlaceLocationRequest request2 = PlaceLocationRequest.builder()
 					.latitude(37.6000)
 					.longitude(127.1000)
 					.build();
 			locationUpdateService.updateLocation(testPlace.getId(), request2);
-
+			
 			// 세 번째 업데이트
 			PlaceLocationRequest request3 = PlaceLocationRequest.builder()
 					.latitude(37.7000)
 					.longitude(127.2000)
 					.build();
 			locationUpdateService.updateLocation(testPlace.getId(), request3);
-
+			
 			// Then
 			PlaceInfo finalPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(finalPlace.getLocation().getLatitude()).isEqualTo(37.7000);
 			assertThat(finalPlace.getLocation().getLongitude()).isEqualTo(127.2000);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("실제 위치 좌표 테스트")
 	class RealLocationTest {
-
+		
 		@Test
 		@Order(10)
 		@DisplayName("서울 시청 좌표 - 성공")
@@ -199,16 +199,16 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					37.5663, 126.9779, "서울특별시", "중구", "태평로1가"
 			);
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5663);
 			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(126.9779);
 		}
-
+		
 		@Test
 		@Order(11)
 		@DisplayName("부산역 좌표 - 성공")
@@ -217,17 +217,17 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					35.1159, 129.0412, "부산광역시", "동구", "초량동"
 			);
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(35.1159);
 			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(129.0412);
 			assertThat(updatedPlace.getLocation().getAddress().getProvince()).isEqualTo("부산광역시");
 		}
-
+		
 		@Test
 		@Order(12)
 		@DisplayName("제주도 좌표 - 성공")
@@ -236,21 +236,21 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					33.4996, 126.5312, "제주특별자치도", "제주시", "연동"
 			);
-
+			
 			// When
 			locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(33.4996);
 			assertThat(updatedPlace.getLocation().getLongitude()).isEqualTo(126.5312);
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("위치 정보 업데이트 테스트")
 	class UpdateLocationTest {
-
+		
 		@Test
 		@Order(1)
 		@DisplayName("위치 정보 업데이트 - 성공")
@@ -259,13 +259,13 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					37.5665, 126.9780, "서울특별시", "중구", "명동"
 			);
-
+			
 			// When
 			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			assertThat(resultId).isEqualTo(testPlace.getId());
-
+			
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation()).isNotNull();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5665);
@@ -274,7 +274,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("중구");
 			assertThat(updatedPlace.getLocation().getAddress().getDistrict()).isEqualTo("명동");
 		}
-
+		
 		@Test
 		@Order(2)
 		@DisplayName("좌표만 업데이트 - 성공")
@@ -284,10 +284,10 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.latitude(37.5172)
 					.longitude(127.0473)
 					.build();
-
+			
 			// When
 			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLatitude()).isEqualTo(37.5172);
@@ -295,7 +295,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			assertThat(updatedPlace.getLocation().getCoordinates()).isNotNull();
 			assertThat(updatedPlace.getLocation().getCoordinates().getSRID()).isEqualTo(4326);
 		}
-
+		
 		@Test
 		@Order(3)
 		@DisplayName("주소 정보만 업데이트 - 성공")
@@ -309,16 +309,16 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.addressDetail("테스트빌딩 10층")
 					.postalCode("13500")
 					.build();
-
+			
 			PlaceLocationRequest request = PlaceLocationRequest.builder()
 					.from(AddressSource.MANUAL)
 					.addressData(addressData)
 					.locationGuide("지하철 신분당선 정자역 1번 출구")
 					.build();
-
+			
 			// When
 			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getAddress()).isNotNull();
@@ -326,7 +326,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			assertThat(updatedPlace.getLocation().getAddress().getCity()).isEqualTo("성남시");
 			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("지하철 신분당선 정자역 1번 출구");
 		}
-
+		
 		@Test
 		@Order(4)
 		@DisplayName("위치 안내 정보 업데이트 - 성공")
@@ -335,10 +335,10 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = PlaceLocationRequest.builder()
 					.locationGuide("버스 정류장에서 도보 3분, 건물 1층")
 					.build();
-
+			
 			// When
 			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
-
+			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation().getLocationGuide()).isEqualTo("버스 정류장에서 도보 3분, 건물 1층");

@@ -7,14 +7,15 @@ PlaceInfoServer의 Service Layer는 **CQRS (Command Query Responsibility Segrega
 ## 패키지 구조
 
 service/
-├── command/              # 쓰기 작업 (Command)
-│   ├── PlaceRegisterService.java
-│   ├── PlaceLocationUpdateService.java
-│   └── PlaceImageUpdateService.java
-├── query/                # 읽기 작업 (Query)
-│   └── PlaceQueryService.java
-└── mapper/               # DTO ↔ Entity 변환
-    └── PlaceMapper.java
+├── command/ # 쓰기 작업 (Command)
+│ ├── PlaceRegisterService.java
+│ ├── PlaceLocationUpdateService.java
+│ └── PlaceImageUpdateService.java
+├── query/ # 읽기 작업 (Query)
+│ └── PlaceQueryService.java
+└── mapper/ # DTO ↔ Entity 변환
+└── PlaceMapper.java
+
 ```
 
 ## CQRS 원칙

@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place Search", description = "공간 탐색 API")
 public class PlaceSearchController {
-
+	
 	private final PlaceQueryService queryService;
 	
 	/**
@@ -79,7 +79,7 @@ public class PlaceSearchController {
 		
 		log.info("검색 요청: keyword={}, location=({},{}), cursor={}",
 				keyword, latitude, longitude, cursor);
-
+		
 		PlaceSearchResponse response = queryService.search(request);
 		return ResponseEntity.ok(response);
 	}
@@ -109,7 +109,7 @@ public class PlaceSearchController {
 		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(), request.getLongitude(), request.getRadius());
-
+		
 		PlaceSearchResponse response = queryService.searchByLocation(searchRequest);
 		return ResponseEntity.ok(response);
 	}
@@ -128,7 +128,7 @@ public class PlaceSearchController {
 			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-
+		
 		PlaceSearchResponse response = queryService.searchByRegion(
 				province, city, district, cursor, size
 		);
@@ -145,7 +145,7 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-
+		
 		PlaceSearchResponse response = queryService.getPopularPlaces(size);
 		return ResponseEntity.ok(response);
 	}
@@ -160,7 +160,7 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-
+		
 		PlaceSearchResponse response = queryService.getRecentPlaces(size);
 		return ResponseEntity.ok(response);
 	}

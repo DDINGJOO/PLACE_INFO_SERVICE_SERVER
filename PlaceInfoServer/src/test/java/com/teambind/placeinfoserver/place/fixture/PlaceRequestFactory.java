@@ -49,7 +49,7 @@ public class PlaceRequestFactory {
 				.addressDetail("테스트빌딩 5층")
 				.postalCode("06234")
 				.build();
-
+		
 		return PlaceLocationRequest.builder()
 				.from(com.teambind.placeinfoserver.place.domain.enums.AddressSource.MANUAL)
 				.addressData(addressData)

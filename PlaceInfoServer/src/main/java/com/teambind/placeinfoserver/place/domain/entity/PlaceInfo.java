@@ -107,7 +107,7 @@ public class PlaceInfo extends BaseEntity {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(
 			name = "place_keywords",
-			joinColumns = @JoinColumn(name = "place_id", referencedColumnName = "id"),
+			joinColumns = @JoinColumn(name = "place_info_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "keyword_id")
 	)
 	@Builder.Default

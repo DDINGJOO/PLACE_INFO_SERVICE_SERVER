@@ -53,7 +53,7 @@ TYPE parking_type AS ENUM (
 -- 3.1 Place Info (Aggregate Root)
 CREATE TABLE place_info
 (
-    id INTEGER PRIMARY KEY, -- Snowflake ID
+    id BIGINT PRIMARY KEY, -- Snowflake ID (Long type)
     user_id         VARCHAR(100) NOT NULL,
     place_name      VARCHAR(100) NOT NULL,
     description     VARCHAR(500),
@@ -89,7 +89,7 @@ CREATE TABLE keywords
 CREATE TABLE place_contacts
 (
     id BIGSERIAL PRIMARY KEY,
-    place_info_id VARCHAR(100) NOT NULL UNIQUE,
+    place_info_id BIGINT NOT NULL UNIQUE,
     contact       VARCHAR(20),
     email         VARCHAR(100),
     created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -104,7 +104,7 @@ CREATE TABLE place_contacts
 CREATE TABLE place_locations
 (
     id BIGSERIAL PRIMARY KEY,
-    place_info_id  VARCHAR(100) NOT NULL UNIQUE,
+    place_info_id BIGINT NOT NULL UNIQUE,
     -- Address (embedded value object)
     province       VARCHAR(50),
     city           VARCHAR(50),
@@ -129,7 +129,7 @@ CREATE TABLE place_locations
 CREATE TABLE place_parkings
 (
     id BIGSERIAL PRIMARY KEY,
-    place_info_id VARCHAR(100) NOT NULL UNIQUE,
+    place_info_id BIGINT NOT NULL UNIQUE,
     available     BOOLEAN      NOT NULL DEFAULT false,
     parking_type  VARCHAR(10),
     description   VARCHAR(500),
@@ -146,10 +146,9 @@ CREATE TABLE place_parkings
 -- 4.4 Place Images
 CREATE TABLE place_images
 (
-    id            VARCHAR(100) PRIMARY KEY, -- Image ID from external service
-    place_info_id VARCHAR(100) NOT NULL,
+    id            VARCHAR(255) PRIMARY KEY, -- Image ID from external service
+    place_info_id BIGINT NOT NULL,
     image_url     VARCHAR(500) NOT NULL,
-    display_order INTEGER DEFAULT 0,
     CONSTRAINT fk_place_images_place_info
         FOREIGN KEY (place_info_id)
             REFERENCES place_info (id)
@@ -191,11 +190,11 @@ CREATE TABLE place_social_links
 -- 6.1 Place-Keywords (Many-to-Many)
 CREATE TABLE place_keywords
 (
-    place_id   VARCHAR(100) NOT NULL,
-    keyword_id BIGINT       NOT NULL,
-    PRIMARY KEY (place_id, keyword_id),
+    place_info_id BIGINT NOT NULL,
+    keyword_id    BIGINT NOT NULL,
+    PRIMARY KEY (place_info_id, keyword_id),
     CONSTRAINT fk_place_keywords_place
-        FOREIGN KEY (place_id)
+        FOREIGN KEY (place_info_id)
             REFERENCES place_info (id)
             ON DELETE CASCADE,
     CONSTRAINT fk_place_keywords_keyword
@@ -243,7 +242,7 @@ CREATE INDEX idx_place_websites_contact_id ON place_websites (place_contact_id);
 CREATE INDEX idx_place_social_links_contact_id ON place_social_links (place_contact_id);
 
 -- Join table indexes
-CREATE INDEX idx_place_keywords_place_id ON place_keywords (place_id);
+CREATE INDEX idx_place_keywords_place_id ON place_keywords (place_info_id);
 CREATE INDEX idx_place_keywords_keyword_id ON place_keywords (keyword_id);
 
 -- =============================================
@@ -312,7 +311,7 @@ CREATE OR REPLACE FUNCTION find_places_within_radius(
     center_lon DOUBLE PRECISION,
     radius_meters DOUBLE PRECISION
 ) RETURNS TABLE(
-        place_id VARCHAR(100),
+        place_id BIGINT,
         place_name VARCHAR(100),
         distance_meters DOUBLE PRECISION
           ) AS $$

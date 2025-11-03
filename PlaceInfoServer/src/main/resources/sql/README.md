@@ -11,9 +11,6 @@ sql/
 ├── schema.sql              # 전체 데이터베이스 스키마 (테이블, 인덱스, 함수, 트리거)
 ├── data-keywords.sql       # 키워드 마스터 데이터 (60개 사전 정의 키워드)
 ├── data-sample.sql         # 개발/테스트용 샘플 데이터
-├── migration/
-│   ├── V1__initial_schema.sql    # Flyway 마이그레이션: 초기 스키마
-│   └── V2__insert_keywords.sql   # Flyway 마이그레이션: 키워드 데이터
 └── README.md              # 이 파일
 ```
 
@@ -46,52 +43,43 @@ createdb placeinfo_db -E UTF8
 
 ### 2. 스키마 적용
 
-#### 방법 1: 직접 실행
+#### 직접 실행 (순서대로 실행)
 
 ```bash
-# 전체 스키마 생성
+# 1. 전체 스키마 생성
 psql -U your_username -d placeinfo_db -f schema.sql
 
-# 키워드 데이터 삽입
+# 2. 키워드 마스터 데이터 삽입
 psql -U your_username -d placeinfo_db -f data-keywords.sql
 
-# (선택) 샘플 데이터 삽입
+# 3. (선택) 샘플 데이터 삽입 (개발/테스트 환경)
 psql -U your_username -d placeinfo_db -f data-sample.sql
 ```
 
-#### 방법 2: Flyway 마이그레이션 (권장)
-
-```yaml
-# application.yml에 Flyway 설정
-spring:
-  flyway:
-    enabled: true
-    locations: classpath:sql/migration
-    baseline-on-migrate: true
-```
+**주의**: 반드시 위 순서대로 실행해야 합니다. (schema → keywords → sample)
 
 ## 주요 테이블 구조
 
 ### 메인 테이블
 
-- `place_info` - 장소 정보 (Aggregate Root)
-- `keywords` - 키워드 마스터 데이터
+- `place_info` - 장소 정보 (Aggregate Root, **BIGINT PK - Snowflake ID**)
+- `keywords` - 키워드 마스터 데이터 (BIGSERIAL PK)
 
-### 연관 엔티티 테이블
+### 연관 엔티티 테이블 (1:1)
 
-- `place_contacts` - 연락처 정보
-- `place_locations` - 위치 정보 (PostGIS 지원)
-- `place_parkings` - 주차 정보
-- `place_images` - 이미지 정보
+- `place_contacts` - 연락처 정보 (BIGSERIAL PK, BIGINT FK)
+- `place_locations` - 위치 정보 (PostGIS 지원, BIGSERIAL PK, BIGINT FK)
+- `place_parkings` - 주차 정보 (BIGSERIAL PK, BIGINT FK)
+- `place_images` - 이미지 정보 (VARCHAR(255) PK, BIGINT FK, 1:N)
 
-### 컬렉션 테이블
+### Element Collection 테이블
 
-- `place_websites` - 웹사이트 목록
-- `place_social_links` - 소셜 미디어 링크
+- `place_websites` - 웹사이트 목록 (place_contact_id FK)
+- `place_social_links` - 소셜 미디어 링크 (place_contact_id FK)
 
-### 조인 테이블
+### 조인 테이블 (N:M)
 
-- `place_keywords` - 장소-키워드 N:N 매핑
+- `place_keywords` - 장소-키워드 매핑 (place_info_id, keyword_id 복합키)
 
 ## 주요 기능
 
@@ -163,7 +151,7 @@ SELECT calculate_distance(37.5665, 126.9780, 37.4979, 127.0276);
 SELECT pi.*,
        STRING_AGG(k.name, ', ') as keywords
 FROM place_info pi
-         LEFT JOIN place_keywords pk ON pi.id = pk.place_id
+         LEFT JOIN place_keywords pk ON pi.id = pk.place_info_id
          LEFT JOIN keywords k ON pk.keyword_id = k.id
 WHERE pi.is_active = true
   AND pi.deleted_at IS NULL
@@ -196,7 +184,7 @@ ORDER BY distance_km;
 ```sql
 SELECT DISTINCT pi.*
 FROM place_info pi
-         JOIN place_keywords pk ON pi.id = pk.place_id
+         JOIN place_keywords pk ON pi.id = pk.place_info_id
          JOIN keywords k ON pk.keyword_id = k.id
 WHERE k.name IN ('합주실', '녹음실', '24시간 운영')
   AND pi.is_active = true

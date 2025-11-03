@@ -37,7 +37,7 @@ public class PlaceInfo extends BaseEntity {
 	
 	@Id
 	@Column(name = "id", nullable = false)
-	private String id;
+	private Long id;
 	
 	/**
 	 * 유저 ID (외부 서비스 참조)

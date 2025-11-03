@@ -25,10 +25,10 @@ public class PlaceTestFactory {
 	 * 기본 PlaceInfo 생성 (모든 연관 엔티티 포함)
 	 */
 	public static PlaceInfo createPlaceInfo() {
-		String placeId = generatePlaceId();
-		
+		Long placeId = generatePlaceId();
+
 		PlaceInfo placeInfo = PlaceInfo.builder()
-				.id(placeId)
+				.id(placeId)  // Long 타입 ID
 				.userId("user_" + sequenceNumber)
 				.placeName("테스트 연습실 " + sequenceNumber)
 				.description("테스트용 연습실 설명입니다.")
@@ -40,12 +40,12 @@ public class PlaceTestFactory {
 				.approvalStatus(ApprovalStatus.APPROVED)
 				.images(new ArrayList<>())
 				.build();
-		
+
 		// 연관 엔티티 설정
 		placeInfo.setLocation(createPlaceLocation(placeInfo));
 		placeInfo.setContact(createPlaceContact(placeInfo));
 		placeInfo.setParking(createPlaceParking(placeInfo));
-		
+
 		sequenceNumber++;
 		return placeInfo;
 	}
@@ -54,10 +54,10 @@ public class PlaceTestFactory {
 	 * 특정 위치의 PlaceInfo 생성 (위치 기반 검색 테스트용)
 	 */
 	public static PlaceInfo createPlaceInfoWithLocation(String placeName, double latitude, double longitude) {
-		String placeId = generatePlaceId();
-		
+		Long placeId = generatePlaceId();
+
 		PlaceInfo placeInfo = PlaceInfo.builder()
-				.id(placeId)
+				.id(placeId)  // Long 타입 ID
 				.userId("user_" + sequenceNumber)
 				.placeName(placeName)
 				.description("위치 기반 테스트용 연습실입니다.")
@@ -69,12 +69,12 @@ public class PlaceTestFactory {
 				.approvalStatus(ApprovalStatus.APPROVED)
 				.images(new ArrayList<>())
 				.build();
-		
+
 		// 특정 위치로 설정
 		placeInfo.setLocation(createPlaceLocationWithCoordinates(placeInfo, latitude, longitude));
 		placeInfo.setContact(createPlaceContact(placeInfo));
 		placeInfo.setParking(createPlaceParking(placeInfo));
-		
+
 		sequenceNumber++;
 		return placeInfo;
 	}
@@ -220,10 +220,11 @@ public class PlaceTestFactory {
 	}
 	
 	/**
-	 * Place ID 생성
+	 * Place ID 생성 (Long 타입 - 내부 사용)
+	 * 테스트용 ID는 간단한 시퀀스 기반으로 생성
 	 */
-	private static String generatePlaceId() {
-		return "place_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+	private static Long generatePlaceId() {
+		return System.currentTimeMillis() + sequenceNumber;
 	}
 	
 	/**
@@ -309,10 +310,10 @@ public class PlaceTestFactory {
 		}
 		
 		public PlaceInfo build() {
-			String placeId = generatePlaceId();
-			
+			Long placeId = generatePlaceId();
+
 			PlaceInfo placeInfo = PlaceInfo.builder()
-					.id(placeId)
+					.id(placeId)  // Long 타입 ID
 					.userId(userId)
 					.placeName(placeName)
 					.description(description)

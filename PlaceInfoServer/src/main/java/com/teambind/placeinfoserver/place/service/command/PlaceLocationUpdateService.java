@@ -23,13 +23,13 @@ public class PlaceLocationUpdateService {
 	/**
 	 * 업체 위치 정보 업데이트
 	 *
-	 * @param placeId 업체 ID
+	 * @param placeId 업체 ID (String - API 통신용)
 	 * @param req     위치 정보 요청 DTO
-	 * @return 업데이트된 업체 ID
+	 * @return 업데이트된 업체 ID (String - API 응답용)
 	 */
 	@Transactional
 	public String updateLocation(String placeId, PlaceLocationRequest req) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(placeId)
+		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.setLocation(placeMapper.toLocationEntity(req, placeInfo));

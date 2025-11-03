@@ -4,7 +4,8 @@ import com.teambind.placeinfoserver.place.dto.request.LocationSearchRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.dto.response.CountResponse;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
-import com.teambind.placeinfoserver.place.service.query.PlaceQueryService;
+import com.teambind.placeinfoserver.place.repository.PlaceAdvancedSearchRepository;
+import com.teambind.placeinfoserver.place.service.usecase.query.SearchPlacesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,8 +29,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place Search", description = "공간 탐색 API")
 public class PlaceSearchController {
-	
-	private final PlaceQueryService queryService;
+
+	// Query UseCases
+	private final SearchPlacesUseCase searchPlacesUseCase;
+	private final PlaceAdvancedSearchRepository searchRepository;
 	
 	/**
 	 * 통합 검색 API
@@ -79,8 +82,8 @@ public class PlaceSearchController {
 		
 		log.info("검색 요청: keyword={}, location=({},{}), cursor={}",
 				keyword, latitude, longitude, cursor);
-		
-		PlaceSearchResponse response = queryService.search(request);
+
+		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -109,8 +112,8 @@ public class PlaceSearchController {
 		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(), request.getLongitude(), request.getRadius());
-		
-		PlaceSearchResponse response = queryService.searchByLocation(searchRequest);
+
+		PlaceSearchResponse response = searchPlacesUseCase.execute(searchRequest);
 		return ResponseEntity.ok(response);
 	}
 	
@@ -128,13 +131,21 @@ public class PlaceSearchController {
 			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-		
-		PlaceSearchResponse response = queryService.searchByRegion(
-				province, city, district, cursor, size
-		);
+
+		PlaceSearchRequest searchRequest = PlaceSearchRequest.builder()
+				.province(province)
+				.city(city)
+				.district(district)
+				.cursor(cursor)
+				.size(size != null ? size : 20)
+				.isActive(true)
+				.approvalStatus("APPROVED")
+				.build();
+
+		PlaceSearchResponse response = searchPlacesUseCase.execute(searchRequest);
 		return ResponseEntity.ok(response);
 	}
-	
+
 	/**
 	 * 인기 장소 조회 API
 	 */
@@ -145,11 +156,19 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-		
-		PlaceSearchResponse response = queryService.getPopularPlaces(size);
+
+		PlaceSearchRequest request = PlaceSearchRequest.builder()
+				.sortBy(PlaceSearchRequest.SortBy.RATING)
+				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+				.size(size != null ? size : 10)
+				.isActive(true)
+				.approvalStatus("APPROVED")
+				.build();
+
+		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 		return ResponseEntity.ok(response);
 	}
-	
+
 	/**
 	 * 최신 등록 장소 조회 API
 	 */
@@ -160,11 +179,19 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-		
-		PlaceSearchResponse response = queryService.getRecentPlaces(size);
+
+		PlaceSearchRequest request = PlaceSearchRequest.builder()
+				.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
+				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+				.size(size != null ? size : 10)
+				.isActive(true)
+				.approvalStatus("APPROVED")
+				.build();
+
+		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 		return ResponseEntity.ok(response);
 	}
-	
+
 	/**
 	 * 검색 결과 개수 조회 API
 	 */
@@ -174,7 +201,7 @@ public class PlaceSearchController {
 	public ResponseEntity<CountResponse> countSearchResults(
 			@RequestBody PlaceSearchRequest request
 	) {
-		Long count = queryService.countSearchResults(request);
+		Long count = searchRepository.countSearchResults(request);
 		return ResponseEntity.ok(new CountResponse(count));
 	}
 }

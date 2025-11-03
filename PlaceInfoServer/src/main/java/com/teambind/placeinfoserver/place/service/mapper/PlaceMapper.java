@@ -22,7 +22,14 @@ public class PlaceMapper {
 	private final PlaceContactFactory contactFactory;
 	private final PlaceLocationFactory locationFactory;
 	private final PlaceParkingFactory parkingFactory;
-	
+
+	/**
+	 * AddressParser 접근자 (부분 업데이트 시 필요)
+	 */
+	public AddressParser getAddressParser() {
+		return addressParser;
+	}
+
 	// ========== Entity -> Response DTO ==========
 	
 	/**
@@ -240,9 +247,13 @@ public class PlaceMapper {
 		}
 
 		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
-		AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
-		Address address = toAddressEntity(addressRequest);
-		
+		// from과 addressData가 모두 있을 때만 파싱 수행
+		Address address = null;
+		if (request.getFrom() != null && request.getAddressData() != null) {
+			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
+			address = toAddressEntity(addressRequest);
+		}
+
 		// Factory를 사용하여 PlaceLocation 생성
 		PlaceLocation location = locationFactory.create(
 				placeInfo,
@@ -250,12 +261,12 @@ public class PlaceMapper {
 				request.getLatitude(),
 				request.getLongitude()
 		);
-		
+
 		// 위치 안내 정보 설정
 		if (request.getLocationGuide() != null) {
 			location.updateLocationGuide(request.getLocationGuide());
 		}
-		
+
 		return location;
 	}
 	

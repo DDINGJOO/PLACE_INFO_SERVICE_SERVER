@@ -17,9 +17,24 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceImageUpdateService {
-	
+
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
+	
+	/**
+	 * String ID를 Long으로 안전하게 변환
+	 *
+	 * @param placeId String 형태의 업체 ID
+	 * @return Long 형태의 업체 ID
+	 * @throws CustomException ID 형식이 잘못된 경우
+	 */
+	private Long parseId(String placeId) {
+		try {
+			return Long.parseLong(placeId);
+		} catch (NumberFormatException e) {
+			throw new CustomException(ErrorCode.INVALID_FORMAT);
+		}
+	}
 	
 	
 	/**
@@ -31,7 +46,7 @@ public class PlaceImageUpdateService {
 	 */
 	@Transactional
 	public String updateImage(ImagesChangeEventWrapper event) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(event.getReferenceId()))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(event.getReferenceId()))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
 		// 기존 이미지 삭제

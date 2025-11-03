@@ -57,7 +57,7 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(response).isNotNull();
-			assertThat(response.getId()).isEqualTo(placeInfo.getId());
+			assertThat(response.getId()).isEqualTo(String.valueOf(placeInfo.getId()));
 			assertThat(response.getPlaceName()).isEqualTo(placeInfo.getPlaceName());
 			assertThat(response.getDescription()).isEqualTo(placeInfo.getDescription());
 			assertThat(response.getCategory()).isEqualTo(placeInfo.getCategory());
@@ -90,7 +90,7 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(response).isNotNull();
-			assertThat(response.getId()).isEqualTo(placeInfo.getId());
+			assertThat(response.getId()).isEqualTo(String.valueOf(placeInfo.getId()));
 			assertThat(response.getPlaceName()).isEqualTo(placeInfo.getPlaceName());
 			assertThat(response.getThumbnailUrl()).isNotNull();
 			assertThat(response.getShortAddress()).isNotNull();
@@ -336,8 +336,8 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(responses).hasSize(2);
-			assertThat(responses.get(0).getId()).isEqualTo(place1.getId());
-			assertThat(responses.get(1).getId()).isEqualTo(place2.getId());
+			assertThat(responses.get(0).getId()).isEqualTo(String.valueOf(place1.getId()));
+			assertThat(responses.get(1).getId()).isEqualTo(String.valueOf(place2.getId()));
 		}
 		
 		@Test
@@ -365,8 +365,8 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(responses).hasSize(2);
-			assertThat(responses.get(0).getId()).isEqualTo(place1.getId());
-			assertThat(responses.get(1).getId()).isEqualTo(place2.getId());
+			assertThat(responses.get(0).getId()).isEqualTo(String.valueOf(place1.getId()));
+			assertThat(responses.get(1).getId()).isEqualTo(String.valueOf(place2.getId()));
 		}
 	}
 	

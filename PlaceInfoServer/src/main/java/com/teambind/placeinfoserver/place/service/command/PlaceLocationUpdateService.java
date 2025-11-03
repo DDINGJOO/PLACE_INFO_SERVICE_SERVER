@@ -15,9 +15,24 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceLocationUpdateService {
-	
+
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
+	
+	/**
+	 * String ID를 Long으로 안전하게 변환
+	 *
+	 * @param placeId String 형태의 업체 ID
+	 * @return Long 형태의 업체 ID
+	 * @throws CustomException ID 형식이 잘못된 경우
+	 */
+	private Long parseId(String placeId) {
+		try {
+			return Long.parseLong(placeId);
+		} catch (NumberFormatException e) {
+			throw new CustomException(ErrorCode.INVALID_FORMAT);
+		}
+	}
 	
 	
 	/**
@@ -29,7 +44,7 @@ public class PlaceLocationUpdateService {
 	 */
 	@Transactional
 	public String updateLocation(String placeId, PlaceLocationRequest req) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.setLocation(placeMapper.toLocationEntity(req, placeInfo));

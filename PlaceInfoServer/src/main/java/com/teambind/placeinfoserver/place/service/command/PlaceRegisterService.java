@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.service.command;
 
-import com.teambind.placeinfoserver.place.common.exception.CustomException;
-import com.teambind.placeinfoserver.place.common.exception.ErrorCode;
+import com.teambind.placeinfoserver.place.common.exception.application.InvalidRequestException;
+import com.teambind.placeinfoserver.place.common.exception.domain.PlaceNotFoundException;
 import com.teambind.placeinfoserver.place.common.util.generator.PrimaryKeyGenerator;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
@@ -26,13 +26,13 @@ public class PlaceRegisterService {
 	 *
 	 * @param placeId String 형태의 업체 ID
 	 * @return Long 형태의 업체 ID
-	 * @throws CustomException ID 형식이 잘못된 경우
+	 * @throws InvalidRequestException ID 형식이 잘못된 경우
 	 */
 	private Long parseId(String placeId) {
 		try {
 			return Long.parseLong(placeId);
 		} catch (NumberFormatException e) {
-			throw new CustomException(ErrorCode.INVALID_FORMAT);
+			throw InvalidRequestException.invalidFormat("placeId: " + placeId);
 		}
 	}
 	
@@ -68,7 +68,7 @@ public class PlaceRegisterService {
 	public PlaceInfoResponse updatePlace(String placeId, PlaceUpdateRequest request) {
 		// 업체 조회 (String → Long 변환)
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 
 		// 업데이트 (Mapper의 updateEntity 사용)
 		placeMapper.updateEntity(placeInfo, request);
@@ -88,7 +88,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public void deletePlace(String placeId, String deletedBy) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 
 		placeInfo.softDelete(deletedBy);
 		// @Transactional이므로 자동으로 변경사항 반영
@@ -103,7 +103,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public String activatePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 
 		placeInfo.activate();
 		return String.valueOf(placeInfo.getId());  // Long → String 변환
@@ -118,7 +118,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public String deactivatePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 		
 		placeInfo.deactivate();
 		return String.valueOf(placeInfo.getId());  // Long → String 변환
@@ -133,7 +133,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public String approvePlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 		
 		placeInfo.approve();
 		return String.valueOf(placeInfo.getId());  // Long → String 변환 (더티체크)
@@ -148,7 +148,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public String rejectPlace(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 		
 		placeInfo.reject();
 		return String.valueOf(placeInfo.getId());  // Long → String 변환 (더티체크)

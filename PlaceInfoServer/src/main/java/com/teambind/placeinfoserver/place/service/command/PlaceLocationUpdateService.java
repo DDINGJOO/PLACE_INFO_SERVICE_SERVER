@@ -1,7 +1,7 @@
 package com.teambind.placeinfoserver.place.service.command;
 
-import com.teambind.placeinfoserver.place.common.exception.CustomException;
-import com.teambind.placeinfoserver.place.common.exception.ErrorCode;
+import com.teambind.placeinfoserver.place.common.exception.application.InvalidRequestException;
+import com.teambind.placeinfoserver.place.common.exception.domain.PlaceNotFoundException;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.dto.request.PlaceLocationRequest;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
@@ -30,7 +30,7 @@ public class PlaceLocationUpdateService {
 		try {
 			return Long.parseLong(placeId);
 		} catch (NumberFormatException e) {
-			throw new CustomException(ErrorCode.INVALID_FORMAT);
+			throw InvalidRequestException.invalidFormat("placeId");
 		}
 	}
 	
@@ -45,7 +45,7 @@ public class PlaceLocationUpdateService {
 	@Transactional
 	public String updateLocation(String placeId, PlaceLocationRequest req) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
-				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+				.orElseThrow(() -> new PlaceNotFoundException());
 		
 		placeInfo.setLocation(placeMapper.toLocationEntity(req, placeInfo));
 		// @Transactional이므로 자동으로 변경사항 반영 (더티 체킹)

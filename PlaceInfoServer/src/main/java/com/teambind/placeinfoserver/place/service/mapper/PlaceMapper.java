@@ -2,6 +2,9 @@ package com.teambind.placeinfoserver.place.service.mapper;
 
 import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceContactFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceLocationFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceParkingFactory;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
 import com.teambind.placeinfoserver.place.dto.response.*;
@@ -14,8 +17,11 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class PlaceMapper {
-	
+
 	private final AddressParser addressParser;
+	private final PlaceContactFactory contactFactory;
+	private final PlaceLocationFactory locationFactory;
+	private final PlaceParkingFactory parkingFactory;
 	
 	// ========== Entity -> Response DTO ==========
 	
@@ -209,42 +215,45 @@ public class PlaceMapper {
 	}
 	
 	/**
-	 * PlaceContactRequest -> PlaceContact
+	 * PlaceContactRequest -> PlaceContact (Factory 사용)
 	 */
 	public PlaceContact toContactEntity(PlaceContactRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
 		
-		return PlaceContact.builder()
-				.contact(request.getContact())
-				.email(request.getEmail())
-				.websites(request.getWebsites())
-				.socialLinks(request.getSocialLinks())
-				.placeInfo(placeInfo)
-				.build();
+		return contactFactory.create(
+				placeInfo,
+				request.getContact(),
+				request.getEmail(),
+				request.getWebsites(),
+				request.getSocialLinks()
+		);
 	}
 	
 	/**
-	 * PlaceLocationRequest -> PlaceLocation
+	 * PlaceLocationRequest -> PlaceLocation (Factory 사용)
 	 */
 	public PlaceLocation toLocationEntity(PlaceLocationRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
-		
+
 		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 		AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
+		Address address = toAddressEntity(addressRequest);
 		
-		PlaceLocation location = PlaceLocation.builder()
-				.address(toAddressEntity(addressRequest))
-				.locationGuide(request.getLocationGuide())
-				.placeInfo(placeInfo)
-				.build();
+		// Factory를 사용하여 PlaceLocation 생성
+		PlaceLocation location = locationFactory.create(
+				placeInfo,
+				address,
+				request.getLatitude(),
+				request.getLongitude()
+		);
 		
-		// 좌표 설정 (GeometryUtil 사용)
-		if (request.getLatitude() != null && request.getLongitude() != null) {
-			location.setLatLng(request.getLatitude(), request.getLongitude());
+		// 위치 안내 정보 설정
+		if (request.getLocationGuide() != null) {
+			location.updateLocationGuide(request.getLocationGuide());
 		}
 		
 		return location;
@@ -269,19 +278,19 @@ public class PlaceMapper {
 	}
 	
 	/**
-	 * PlaceParkingUpdateRequest -> PlaceParking
+	 * PlaceParkingUpdateRequest -> PlaceParking (Factory 사용)
 	 */
 	public PlaceParking toParkingEntity(PlaceParkingUpdateRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
 		
-		return PlaceParking.builder()
-				.available(request.getAvailable())
-				.parkingType(request.getParkingType())
-				.description(request.getDescription())
-				.placeInfo(placeInfo)
-				.build();
+		return parkingFactory.create(
+				placeInfo,
+				request.getAvailable(),
+				request.getParkingType(),
+				request.getDescription()
+		);
 	}
 	
 	// ========== Update 메서드 (기존 엔티티 업데이트) ==========

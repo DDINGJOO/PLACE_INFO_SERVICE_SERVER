@@ -1,6 +1,6 @@
 spring:
   kafka:
-    bootstrap-servers: localhost:29091,localhost:29092,localhost:29093
+    bootstrap-servers: localhost:9092
     producer:
       retries: 3
       batch-size: 16384
@@ -63,7 +63,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.teambind: DEBUG
+    com.teambind: INFO
     org.springframework: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE

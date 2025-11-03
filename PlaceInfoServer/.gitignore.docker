@@ -1,0 +1,20 @@
+# Docker 관련 무시 파일
+.env.dev
+.env.local
+.env*.local
+
+# Docker 볼륨 데이터
+postgres-data/
+redis-data/
+kafka-data/
+zookeeper-data/
+zookeeper-logs/
+pgadmin-data/
+
+# 로그 파일
+*.log
+logs/
+
+# OS 파일
+.DS_Store
+Thumbs.db

@@ -2,6 +2,10 @@ package com.teambind.placeinfoserver.place.service.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teambind.placeinfoserver.place.common.util.AddressParser;
+import com.teambind.placeinfoserver.place.common.util.address.strategy.AddressParsingStrategy;
+import com.teambind.placeinfoserver.place.common.util.address.strategy.KakaoAddressParsingStrategy;
+import com.teambind.placeinfoserver.place.common.util.address.strategy.ManualAddressParsingStrategy;
+import com.teambind.placeinfoserver.place.common.util.address.strategy.NaverAddressParsingStrategy;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
 import com.teambind.placeinfoserver.place.domain.factory.PlaceContactFactory;
@@ -33,7 +37,16 @@ class PlaceMapperTest {
 
 	@BeforeEach
 	void setUp() {
-		addressParser = new AddressParser(new ObjectMapper());
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		// Strategy Pattern: 모든 전략을 생성하여 AddressParser에 주입
+		List<AddressParsingStrategy> strategies = List.of(
+				new KakaoAddressParsingStrategy(objectMapper),
+				new NaverAddressParsingStrategy(objectMapper),
+				new ManualAddressParsingStrategy(objectMapper)
+		);
+
+		addressParser = new AddressParser(strategies);
 		contactFactory = new PlaceContactFactory();
 		locationFactory = new PlaceLocationFactory();
 		parkingFactory = new PlaceParkingFactory();

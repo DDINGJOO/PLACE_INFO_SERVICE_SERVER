@@ -83,12 +83,9 @@ public class PlaceLocationFactory {
 	
 	/**
 	 * 필수 필드 검증
+	 * address는 선택적 (좌표만 업데이트하는 경우 null 가능)
 	 */
 	private void validateRequiredFields(Address address, Double latitude, Double longitude) {
-		if (address == null) {
-			throw new IllegalArgumentException("address는 필수입니다.");
-		}
-		
 		if (latitude == null || longitude == null) {
 			throw new IllegalArgumentException("위도와 경도는 필수입니다.");
 		}

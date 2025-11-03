@@ -1,6 +1,7 @@
 package com.teambind.placeinfoserver.place.service.command;
 
 import com.teambind.placeinfoserver.place.common.exception.CustomException;
+import com.teambind.placeinfoserver.place.common.exception.domain.PlaceNotFoundException;
 import com.teambind.placeinfoserver.place.config.BaseIntegrationTest;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.domain.enums.AddressSource;
@@ -123,10 +124,11 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			PlaceLocationRequest request = createLocationRequest(
 					37.5665, 126.9780, "서울특별시", "중구", "명동"
 			);
-			
+			Long nonExistentId = 999999999L;
+
 			// When & Then
-			assertThatThrownBy(() -> locationUpdateService.updateLocation("invalid_place_id", request))
-					.isInstanceOf(CustomException.class);
+			assertThatThrownBy(() -> locationUpdateService.updateLocation(String.valueOf(nonExistentId), request))
+					.isInstanceOf(PlaceNotFoundException.class);
 		}
 	}
 	
@@ -262,9 +264,9 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			
 			// When
 			String resultId = locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
-			
+
 			// Then
-			assertThat(resultId).isEqualTo(testPlace.getId());
+			assertThat(resultId).isEqualTo(String.valueOf(testPlace.getId()));
 			
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getLocation()).isNotNull();

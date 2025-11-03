@@ -1,7 +1,10 @@
 package com.teambind.placeinfoserver.place.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +17,6 @@ import java.util.List;
 @Entity
 @Table(name = "place_contacts")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -94,5 +96,13 @@ public class PlaceContact extends BaseEntity {
 			throw new IllegalStateException("소셜 링크는 최대 10개까지만 등록 가능합니다.");
 		}
 		this.socialLinks.add(socialUrl);
+	}
+	
+	/**
+	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
+	 * PlaceInfo.setContact()에서만 호출되어야 함
+	 */
+	void setPlaceInfo(PlaceInfo placeInfo) {
+		this.placeInfo = placeInfo;
 	}
 }

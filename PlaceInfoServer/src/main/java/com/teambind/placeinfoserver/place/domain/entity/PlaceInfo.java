@@ -2,7 +2,10 @@ package com.teambind.placeinfoserver.place.domain.entity;
 
 import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -29,7 +32,6 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE place_info SET deleted_at = NOW(), deleted_by = ? WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

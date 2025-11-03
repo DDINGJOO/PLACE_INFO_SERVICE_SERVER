@@ -1,7 +1,10 @@
 package com.teambind.placeinfoserver.place.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 업체 이미지 엔티티
@@ -11,7 +14,6 @@ import lombok.*;
 @Entity
 @Table(name = "place_images")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,4 +37,10 @@ public class PlaceImage {
 	private String imageUrl;
 	
 	
+	/**
+	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
+	 */
+	void setPlaceInfo(PlaceInfo placeInfo) {
+		this.placeInfo = placeInfo;
+	}
 }

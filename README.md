@@ -25,7 +25,7 @@
 - **타입**: Spring Boot REST API 마이크로서비스
 - **Java**: 21
 - **빌드**: Gradle 8.x
-- **버전**: 1.0.0
+- **버전**: 1.1.0
 
 ### 핵심 목적
 
@@ -34,7 +34,7 @@
 - 음악 연습실, 공연장, 스튜디오 등 장소 정보 관리
 - PostGIS 기반 위치 검색 (반경 검색, 지역 검색)
 - 복합 조건 검색 (키워드, 카테고리, 장르, 주차 가능 여부 등)
-- CQRS 패턴을 통한 읽기/쓰기 분리
+- **UseCase 패턴 기반 CQRS 적용 (v1.1)**
 - 이벤트 기반 이미지 동기화 (Kafka)
 - 소프트 삭제 및 승인 워크플로우
 
@@ -48,7 +48,7 @@
 
 - 필수 정보: 장소명, 위치, 연락처
 - 선택 정보: 카테고리, 장르, 주차 정보, 키워드(최대 10개), 이미지(최대 10장)
-- 자동 ID 생성 (place_xxxxxxxxxxxxxxxx)
+- 자동 ID 생성 (Snowflake 알고리즘 - 64bit Long)
 - JPA Auditing을 통한 생성/수정 시각 자동 기록
 
 #### 장소 수정
@@ -95,22 +95,90 @@
 - 최신 장소 조회
 - 검색 결과 개수 조회
 
-### 3. CQRS 패턴
+### 3. UseCase 패턴 (CQRS) - v1.1
 
-#### Command (쓰기)
+UseCase 패턴을 적용하여 각 비즈니스 작업을 독립적인 UseCase로 분리했습니다.
 
-- **PlaceRegisterService**: 장소 등록, 수정, 삭제
-- **PlaceLocationUpdateService**: 위치 정보 업데이트
-- **PlaceImageUpdateService**: 이미지 동기화 (Kafka Event)
-- `@Transactional`을 통한 트랜잭션 관리
-- Dirty Checking을 통한 자동 변경 감지
+#### Command UseCase (쓰기 작업)
 
-#### Query (읽기)
+각 작업이 하나의 UseCase로 분리되어 단일 책임 원칙(SRP)을 준수합니다:
 
-- **PlaceQueryService**: 모든 검색 기능 담당
-- `@Transactional(readOnly = true)`로 성능 최적화
-- Redis 캐싱 지원 (계획)
-- 복잡한 동적 쿼리 (QueryDSL)
+- **RegisterPlaceUseCase**: 장소 등록
+- **UpdatePlaceUseCase**: 장소 정보 수정
+- **DeletePlaceUseCase**: 장소 삭제 (소프트 삭제)
+- **ActivatePlaceUseCase**: 장소 활성화
+- **DeactivatePlaceUseCase**: 장소 비활성화
+- **ApprovePlaceUseCase**: 장소 승인
+- **RejectPlaceUseCase**: 장소 거부
+
+모든 Command UseCase는 `@Transactional`을 통해 트랜잭션을 관리하며, Dirty Checking을 통한 자동 변경 감지를 활용합니다.
+
+```java
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class RegisterPlaceUseCase {
+	private final PlaceInfoRepository placeInfoRepository;
+	
+	public PlaceInfoResponse execute(PlaceRegisterRequest request) {
+		// 단일 책임: 장소 등록만 수행
+		PlaceInfo placeInfo = PlaceMapper.toEntity(request);
+		PlaceInfo saved = placeInfoRepository.save(placeInfo);
+		return PlaceMapper.toResponse(saved);
+	}
+}
+```
+
+#### Query UseCase (읽기 작업)
+
+읽기 전용 작업으로 `@Transactional(readOnly = true)`를 적용하여 성능을 최적화합니다:
+
+- **GetPlaceDetailUseCase**: 장소 상세 조회
+- **SearchPlacesUseCase**: 장소 검색 (위치/키워드/통합)
+- **GetPlacesByUserUseCase**: 사용자별 장소 조회
+
+```java
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class GetPlaceDetailUseCase {
+	private final PlaceInfoRepository placeInfoRepository;
+	
+	public PlaceInfoResponse execute(String placeId) {
+		Long id = IdParser.parsePlaceId(placeId);
+		PlaceInfo placeInfo = placeInfoRepository.findById(id)
+				.orElseThrow(() -> new PlaceNotFoundException(placeId));
+		return PlaceMapper.toResponse(placeInfo);
+	}
+}
+```
+
+#### 공통 유틸리티
+
+- **IdParser**: String ID를 Long으로 안전하게 변환하는 유틸리티
+
+```java
+public class IdParser {
+	public static Long parsePlaceId(String placeId) {
+		try {
+			return Long.parseLong(placeId);
+		} catch (NumberFormatException e) {
+			throw new InvalidRequestException("Invalid place ID format: " + placeId);
+		}
+	}
+}
+```
+
+#### CQRS 장점
+
+1. **단일 책임 원칙(SRP)**: 각 UseCase가 하나의 비즈니스 작업만 수행
+2. **개방-폐쇄 원칙(OCP)**: 새로운 UseCase 추가 시 기존 코드 수정 불필요
+3. **테스트 용이성**: UseCase별 독립 테스트 가능
+4. **유지보수성**: 변경 영향 범위 최소화
+5. **성능 최적화**: Command/Query 분리로 각각 최적화 가능
+6. **확장성**: 독립적인 스케일링 가능
 
 ### 4. Value Object 패턴
 
@@ -192,21 +260,42 @@ Url website = Url.of("example.com");
 
 ## 아키텍처
 
-### 계층 구조
+### 계층 구조 (v1.1)
 
 ```
 ┌─────────────────────────────────────────┐
 │         Controller Layer                │
 │  (PlaceRegisterController - Command)    │
 │  (PlaceSearchController - Query)        │
+│  (AdminController - Command)            │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
-│         Service Layer (CQRS)            │
-│  Command: PlaceRegisterService          │
-│           PlaceLocationUpdateService    │
-│           PlaceImageUpdateService       │
-│  Query:   PlaceQueryService             │
+│      UseCase Layer (CQRS) - NEW!       │
+│                                         │
+│  Command UseCases:                      │
+│    - RegisterPlaceUseCase               │
+│    - UpdatePlaceUseCase                 │
+│    - DeletePlaceUseCase                 │
+│    - ActivatePlaceUseCase               │
+│    - DeactivatePlaceUseCase             │
+│    - ApprovePlaceUseCase                │
+│    - RejectPlaceUseCase                 │
+│                                         │
+│  Query UseCases:                        │
+│    - GetPlaceDetailUseCase              │
+│    - SearchPlacesUseCase                │
+│    - GetPlacesByUserUseCase             │
+│                                         │
+│  Common:                                │
+│    - IdParser (유틸리티)                 │
+└──────────────┬──────────────────────────┘
+               │
+┌──────────────▼──────────────────────────┐
+│      Legacy Service Layer               │
+│  (이미지 동기화 등 특수 목적)              │
+│    - PlaceImageUpdateService            │
+│    - PlaceLocationUpdateService         │
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
@@ -216,7 +305,7 @@ Url website = Url.of("example.com");
                │
 ┌──────────────▼──────────────────────────┐
 │   Repository Layer (JPA + QueryDSL)     │
-│  JpaRepository: 기본 CRUD                │ 
+│  JpaRepository: 기본 CRUD                │
 │  QueryDSL: 복잡한 검색 쿼리                 │
 │  Custom Repository: 위치 검색             │
 └──────────────┬──────────────────────────┘
@@ -231,14 +320,25 @@ Url website = Url.of("example.com");
 
 ### 디자인 패턴
 
-#### 1. CQRS 패턴
+#### 1. UseCase 패턴 (v1.1)
+
+각 비즈니스 작업을 독립적인 UseCase로 분리하여 단일 책임 원칙을 준수합니다.
+
+**장점**:
+
+- 높은 응집도, 낮은 결합도
+- UseCase별 독립 테스트 가능
+- 새로운 기능 추가 시 기존 코드 영향 최소화
+- 명확한 비즈니스 의도 표현
+
+#### 2. CQRS 패턴
 
 - Command와 Query의 명확한 분리
 - 읽기 최적화: `readOnly = true`, 캐싱
 - 쓰기 최적화: Dirty Checking, 트랜잭션 관리
 - 독립적인 스케일링 가능
 
-#### 2. Domain-Driven Design (DDD)
+#### 3. Domain-Driven Design (DDD)
 
 - **Aggregate Root**: PlaceInfo
 - **Entities**: PlaceLocation, PlaceContact, PlaceParking, PlaceImage
@@ -246,26 +346,63 @@ Url website = Url.of("example.com");
 - **Repository Pattern**: 도메인 중심 데이터 접근
 - 연관관계 편의 메서드를 통한 일관성 보장
 
-#### 3. Value Object 패턴
+#### 4. Value Object 패턴
 
 - 불변 객체 (Immutable)
 - 자가 검증 (Self-Validation)
 - 도메인 로직 캡슐화
 - equals/hashCode 기반 동등성
 
-#### 4. 이벤트 기반 아키텍처
+#### 5. Strategy 패턴 (AddressParser)
+
+주소 데이터 출처(카카오, 네이버, 수동입력)에 따라 다른 파싱 전략을 적용합니다.
+
+**구조**:
+
+```
+AddressParser (Context)
+└── AddressParsingStrategy (Interface)
+    ├── KakaoAddressParsingStrategy
+    ├── NaverAddressParsingStrategy
+    └── ManualAddressParsingStrategy
+```
+
+**장점**:
+
+- 외부 API 변경 시 해당 전략만 수정
+- 새로운 주소 제공자 추가 용이 (OCP 준수)
+- 전략별 독립 테스트 가능
+- 클라이언트 코드 변경 없이 전략 교체
+
+**사용 예시**:
+
+```java
+
+@Service
+@RequiredArgsConstructor
+public class AddressParser {
+	private final Map<AddressSource, AddressParsingStrategy> strategies;
+	
+	public Address parse(AddressSource source, Object data) {
+		AddressParsingStrategy strategy = strategies.get(source);
+		return strategy.parse(data);
+	}
+}
+```
+
+#### 6. 이벤트 기반 아키텍처
 
 - Kafka를 통한 비동기 이벤트 처리
 - 느슨한 결합 (Loose Coupling)
 - 이미지 서버와의 독립적 배포
 
-#### 5. Repository 패턴
+#### 7. Factory 패턴
 
-- JPA Repository: 기본 CRUD
-- Custom Repository: 복잡한 검색 (QueryDSL)
-- PostGIS 네이티브 쿼리
+- 복잡한 엔티티 생성 로직을 Factory로 분리
+- PlaceInfoFactory, PlaceLocationFactory 등
+- 테스트 데이터 생성 용이
 
-#### 6. Soft Delete 패턴
+#### 8. Soft Delete 패턴
 
 - 물리적 삭제 대신 논리적 삭제
 - deleted_at 컬럼 기록
@@ -281,9 +418,7 @@ Url website = Url.of("example.com");
 
 ```sql
 id
-VARCHAR
-    (50)
-    PRIMARY KEY   -- place_xxxxxxxxxxxxxxxx
+BIGINT PRIMARY KEY        -- Snowflake 64-bit Long ID
 user_id             VARCHAR(100) NOT NULL     -- 소유자 ID (외부 서비스)
 place_name          VARCHAR(100) NOT NULL     -- 장소명
 description         VARCHAR(500)              -- 소개
@@ -296,7 +431,7 @@ review_count        INT DEFAULT 0             -- 리뷰 개수
 deleted_at          TIMESTAMP                 -- 삭제 일시 (소프트 삭제)
 deleted_by          VARCHAR(100)              -- 삭제자 ID
 created_at          TIMESTAMP NOT NULL        -- 생성 일시
-updated_at          TIMESTAMP NOT NULL -- 수정 일시
+updated_at          TIMESTAMP NOT NULL        -- 수정 일시
 ```
 
 #### 2. place_location (위치 정보)
@@ -304,7 +439,7 @@ updated_at          TIMESTAMP NOT NULL -- 수정 일시
 ```sql
 id
 BIGINT AUTO_INCREMENT PRIMARY KEY
-place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
+place_id            BIGINT UNIQUE NOT NULL       -- FK to place_info
 coordinates         POINT NOT NULL SRID 4326     -- PostGIS 좌표 (WGS84)
 sido_code           VARCHAR(20)                  -- 시/도 코드
 sigungu_code        VARCHAR(20)                  -- 시/군/구 코드
@@ -323,7 +458,7 @@ SPATIAL INDEX idx_coordinates (coordinates)
 ```sql
 id
 BIGINT AUTO_INCREMENT PRIMARY KEY
-place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
+place_id            BIGINT UNIQUE NOT NULL       -- FK to place_info
 phone_number        VARCHAR(20)                  -- 전화번호
 email               VARCHAR(100)                 -- 이메일
 website             VARCHAR(200)                 -- 웹사이트
@@ -334,7 +469,7 @@ website             VARCHAR(200)                 -- 웹사이트
 ```sql
 id
 BIGINT AUTO_INCREMENT PRIMARY KEY
-place_id            VARCHAR(50) UNIQUE NOT NULL  -- FK to place_info
+place_id            BIGINT UNIQUE NOT NULL       -- FK to place_info
 parking_available   BOOLEAN DEFAULT FALSE        -- 주차 가능 여부
 parking_fee         VARCHAR(100)                 -- 주차 요금 정보
 parking_description VARCHAR(500)                 -- 주차 설명
@@ -345,7 +480,7 @@ parking_description VARCHAR(500)                 -- 주차 설명
 ```sql
 id
 BIGINT AUTO_INCREMENT PRIMARY KEY
-place_id            VARCHAR(50) NOT NULL         -- FK to place_info
+place_id            BIGINT NOT NULL              -- FK to place_info
 image_url           VARCHAR(500) NOT NULL        -- 이미지 URL
 image_sequence      INT                          -- 순서 (0부터 시작)
 is_main             BOOLEAN DEFAULT FALSE        -- 대표 이미지 여부
@@ -367,9 +502,7 @@ keyword_name        VARCHAR(50) UNIQUE NOT NULL  -- 키워드명
 
 ```sql
 place_id
-VARCHAR
-    (50)
-    NOT NULL         -- FK to place_info
+BIGINT NOT NULL              -- FK to place_info
 keyword_id          BIGINT NOT NULL              -- FK to keyword
 PRIMARY KEY (place_id, keyword_id)
 
@@ -512,7 +645,7 @@ Request Body:
 Response: 200 OK
 ```
 
-#### PATCH /api/v1/places/{placeId}/location
+#### PUT /api/v1/places/{placeId}/locations
 
 **위치 정보 수정**
 
@@ -521,16 +654,23 @@ Content-Type: application/json
 
 Request Body:
 {
+  "from": "KAKAO",
+  "addressData": {
+    // 카카오/네이버 API 응답 JSON 원본
+    "address_name": "서울특별시 종로구 세종대로 110",
+    "road_address": {...},
+    "x": "126.9780",
+    "y": "37.5665"
+  },
   "latitude": 37.5665,
   "longitude": 126.9780,
-  "sidoCode": "11",
-  "sigunguCode": "11230",
-  "fullAddress": "서울특별시 종로구 세종대로 110",
-  "detailAddress": "3층",
-  "zipCode": "03188"
+  "locationGuide": "3층 엘리베이터 앞"
 }
 
-Response: 204 No Content
+Response: 200 OK
+{
+  "placeId": "place_5f98f3d1b3b94401"
+}
 ```
 
 #### PATCH /api/v1/places/{placeId}
@@ -557,13 +697,21 @@ Response: 204 No Content
 ```http
 Query Parameters:
 - keyword: String (옵션) - 장소명, 소개 검색
+- placeName: String (옵션) - 장소명 검색
 - category: String (옵션) - 카테고리 필터
 - placeType: String (옵션) - 장르 필터
+- keywordIds: List<Long> (옵션) - 키워드 ID 목록
 - parkingAvailable: Boolean (옵션) - 주차 가능 장소만
-- sidoCode: String (옵션) - 시/도 코드
-- sigunguCode: String (옵션) - 시/군/구 코드
+- latitude: Double (옵션) - 위도 (-90.0 ~ 90.0)
+- longitude: Double (옵션) - 경도 (-180.0 ~ 180.0)
+- radius: Integer (옵션, 기본값: 5000) - 검색 반경 (미터)
+- province: String (옵션) - 시/도 (예: 서울특별시)
+- city: String (옵션) - 시/군/구 (예: 종로구)
+- district: String (옵션) - 동/읍/면 (예: 세종로)
+- sortBy: String (기본값: DISTANCE) - 정렬 기준 (DISTANCE, RATING, REVIEW_COUNT, CREATED_AT, PLACE_NAME)
+- sortDirection: String (기본값: ASC) - 정렬 방향 (ASC, DESC)
 - cursor: String (옵션) - 페이징 커서
-- size: int (기본값: 10)
+- size: int (기본값: 20) - 페이지 크기
 
 Response:
 {
@@ -590,21 +738,24 @@ Response:
 }
 ```
 
-#### GET /api/v1/places/search/location
+#### POST /api/v1/places/search/location
 
 **위치 기반 검색 (반경 검색)**
 
 ```http
-Query Parameters:
-- latitude: Double (필수) - 위도 (-90.0 ~ 90.0)
-- longitude: Double (필수) - 경도 (-180.0 ~ 180.0)
-- radiusInMeters: Integer (기본값: 5000, 최대: 50000) - 검색 반경 (미터)
-- category: String (옵션)
-- cursor: String (옵션)
-- size: int (기본값: 10)
+Content-Type: application/json
 
-예시:
-GET /api/v1/places/search/location?latitude=37.5665&longitude=126.9780&radiusInMeters=3000
+Request Body:
+{
+  "latitude": 37.5665,
+  "longitude": 126.9780,
+  "radius": 3000,
+  "keyword": "연습실",
+  "keywordIds": [1, 2, 3],
+  "parkingAvailable": true,
+  "cursor": "eyJpZCI6InBsYWNlXzVmOThmM2QxYjNiOTQ0MDEiLCJj...",
+  "size": 10
+}
 
 Response:
 {
@@ -624,60 +775,6 @@ Response:
   "hasNext": true
 }
 ```
-
-#### GET /api/v1/places/search/region
-
-**지역 기반 검색**
-
-```http
-Query Parameters:
-- regionCode: String (필수) - 행정구역 코드
-- category: String (옵션)
-- cursor: String (옵션)
-- size: int (기본값: 10)
-
-예시:
-GET /api/v1/places/search/region?regionCode=11230&category=연습실
-
-Response: (동일 구조)
-```
-
-#### GET /api/v1/places/search/popular
-
-**인기 장소 조회**
-
-```http
-Query Parameters:
-- size: int (기본값: 10, 최대: 100)
-
-Response: (동일 구조, 평점순 정렬)
-```
-
-#### GET /api/v1/places/search/recent
-
-**최신 장소 조회**
-
-```http
-Query Parameters:
-- size: int (기본값: 10)
-
-Response: (동일 구조, 생성일순 정렬)
-```
-
-#### GET /api/v1/places/search/count
-
-**검색 결과 개수 조회**
-
-```http
-Query Parameters: (search API와 동일)
-
-Response:
-{
-  "count": 245
-}
-```
-
-### 장소 상세 조회
 
 #### GET /api/v1/places/{placeId}
 
@@ -743,41 +840,13 @@ Response: 204 No Content
 - 복구 가능
 ```
 
-### Enums 조회
-
-#### GET /api/v1/places/enums/categories
-
-**카테고리 목록**
-
-```json
-[
-  "연습실",
-  "공연장",
-  "스튜디오",
-  "녹음실"
-]
-```
-
-#### GET /api/v1/places/enums/place-types
-
-**장소 유형 목록**
-
-```json
-[
-  "음악",
-  "댄스",
-  "공연",
-  "전시"
-]
-```
-
 ---
 
 ## 기술 스택
 
 ### Core
 
-- **Spring Boot**: 3.5.5
+- **Spring Boot**: 3.5.7
 - **Java**: 21 (Eclipse Temurin)
 - **Gradle**: 8.x
 
@@ -820,7 +889,7 @@ Response: 204 No Content
 - **JUnit 5**: 단위 테스트 프레임워크
 - **Mockito**: 5.x (모킹 라이브러리)
 - **Spring Boot Test**: 통합 테스트 지원
-- **Testcontainers**: 3.x (PostgreSQL, Redis)
+- **Testcontainers**: 3.x (PostgreSQL, Kafka)
 - **MockMvc**: Controller 레이어 테스트
 - **AssertJ**: 유창한 assertion 라이브러리
 
@@ -832,14 +901,13 @@ Response: 204 No Content
 
 이 프로젝트는 **통합 테스트**와 **단위 테스트**를 통해 코드 품질과 안정성을 보장합니다.
 
-#### 테스트 커버리지
+#### 테스트 커버리지 (v1.1)
 
 ```
-총 테스트 수: 381개
-성공: 380개
-실패: 0개
+총 테스트 수: 459개
+성공: 456개 (99.3%)
+실패: 3개 (PlaceImageUpdateService - 별도 이슈)
 건너뜀: 1개
-성공률: 99.7%
 ```
 
 ### 테스트 구조
@@ -871,20 +939,36 @@ Response: 204 No Content
 ./gradlew test --tests "*controller*"
 ```
 
-#### 2. Service Layer (120개 테스트)
+#### 2. UseCase Layer (56개 테스트) - NEW in v1.1
 
-**PlaceRegisterServiceTest** (60개):
+**Command UseCases**:
 
-- 장소 등록 로직
-- 장소 수정 로직
-- 장소 삭제 로직
-- 상태 변경 로직
-- 트랜잭션 테스트
-- Dirty Checking 테스트
+- **RegisterPlaceUseCaseTest** (8개): 장소 등록 로직
+- **UpdatePlaceUseCaseTest** (6개): 장소 수정 로직
+- **DeletePlaceUseCaseTest** (6개): 소프트 삭제 로직
+- **ActivatePlaceUseCaseTest** (9개): 활성화/비활성화 로직
+- **ApprovePlaceUseCaseTest** (9개): 승인/거부 로직
 
-**PlaceQueryServiceTest** (40개):
+**Query UseCases**:
 
-- 통합 검색 로직
+- **GetPlaceDetailUseCaseTest** (8개): 상세 조회 로직
+- **SearchPlacesUseCaseTest** (마이그레이션): 검색 로직
+
+**Common**:
+
+- **IdParserTest** (10개): ID 파싱 유틸리티
+
+**실행**:
+
+```bash
+./gradlew test --tests "*usecase*"
+```
+
+#### 3. Service Layer (90개 테스트)
+
+**PlaceAdvancedSearchServiceTest** (30+개):
+
+- 통합 검색 로직 마이그레이션 (SearchPlacesUseCase)
 - 위치 기반 검색 로직
 - 커서 기반 페이징
 - 정렬 테스트
@@ -895,13 +979,18 @@ Response: 204 No Content
 - PostGIS Point 생성
 - 좌표 검증
 
+**PlaceImageUpdateServiceTest** (20개):
+
+- 이미지 동기화 로직
+- Kafka 이벤트 처리
+
 **실행**:
 
 ```bash
 ./gradlew test --tests "*service*"
 ```
 
-#### 3. Repository Layer (80개 테스트)
+#### 4. Repository Layer (80개 테스트)
 
 **PlaceAdvancedSearchRepositoryTest** (50개):
 
@@ -922,7 +1011,7 @@ Response: 204 No Content
 ./gradlew test --tests "*repository*"
 ```
 
-#### 4. Entity Layer (40개 테스트)
+#### 5. Entity Layer (40개 테스트)
 
 **PlaceInfoTest** (20개):
 
@@ -942,7 +1031,7 @@ Response: 204 No Content
 ./gradlew test --tests "*entity*"
 ```
 
-#### 5. Value Object Layer (40개 테스트)
+#### 6. Value Object Layer (40개 테스트)
 
 **CoordinatesTest** (10개):
 
@@ -977,36 +1066,17 @@ Response: 204 No Content
 ./gradlew test --tests "*vo*"
 ```
 
-#### 6. Validator Layer (16개 테스트)
-
-**LocationValidatorTest** (8개):
-
-- 위도/경도 유효성 검증
-- 경계값 테스트
-
-**ContactValidatorTest** (8개):
-
-- 전화번호 형식 검증
-- 이메일 형식 검증
-
-**실행**:
-
-```bash
-./gradlew test --tests "*validator*"
-```
-
 ### 테스트 환경 설정
 
 #### Testcontainers 설정
 
 ```java
-
 @SpringBootTest
 @Import(JpaAuditingTestConfig.class)
 public abstract class BaseIntegrationTest {
 	
 	private static final PostgreSQLContainer<?> postgresContainer;
-	private static final RedisContainer redisContainer;
+	private static final KafkaContainer kafkaContainer;
 	
 	static {
 		// PostgreSQL with PostGIS
@@ -1016,9 +1086,9 @@ public abstract class BaseIntegrationTest {
 				.withPassword("test");
 		postgresContainer.start();
 		
-		// Redis
-		redisContainer = new RedisContainer(DockerImageName.parse("redis:7-alpine"));
-		redisContainer.start();
+		// Kafka
+		kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
+		kafkaContainer.start();
 	}
 }
 ```
@@ -1041,9 +1111,8 @@ spring:
         format_sql: true
         dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
 
-  redis:
-    host: ${TESTCONTAINERS_REDIS_HOST}
-    port: ${TESTCONTAINERS_REDIS_PORT}
+  kafka:
+    bootstrap-servers: ${TESTCONTAINERS_KAFKA_BOOTSTRAP_SERVERS}
 
 logging:
   level:
@@ -1059,11 +1128,12 @@ logging:
 
 # 특정 레이어 테스트
 ./gradlew test --tests "*controller*"
+./gradlew test --tests "*usecase*"
 ./gradlew test --tests "*service*"
 ./gradlew test --tests "*repository*"
 
 # 특정 테스트 클래스
-./gradlew test --tests PlaceRegisterControllerTest
+./gradlew test --tests RegisterPlaceUseCaseTest
 
 # 테스트 리포트 확인
 open build/reports/tests/test/index.html
@@ -1078,7 +1148,7 @@ open build/reports/tests/test/index.html
 2. **DisplayName 한글 사용**: 테스트 의도를 명확히 표현
 3. **@Nested 클래스**: 관련 테스트를 그룹화
 4. **Testcontainers**: 실제 DB 환경에서 통합 테스트
-5. **Mock vs Real**: Service는 Mock, Repository는 Real DB
+5. **Mock vs Real**: UseCase는 Real, 외부 의존성은 Mock
 6. **AssertJ 활용**: 유창한 assertion으로 가독성 향상
 7. **테스트 격리**: 각 테스트는 독립적으로 실행
 
@@ -1174,29 +1244,7 @@ created_at DESC
 LIMIT 10;  // 바로 조회
 ```
 
-### 5. Redis 캐싱 전략 (계획)
-
-**캐싱 대상**:
-
-```java
-// 인기 장소 (1시간 TTL)
-@Cacheable(value = "popularPlaces", key = "#size")
-public List<PlaceInfo> getPopularPlaces(int size) { ...}
-
-// 위치 기반 검색 (10분 TTL)
-@Cacheable(
-		value = "locationSearch",
-		key = "#lat + ':' + #lon + ':' + #radius",
-		condition = "#cursor == null"
-)
-public PlaceSearchResponse searchByLocation(...) { ...}
-
-// 지역별 장소 개수 (1일 TTL)
-@Cacheable(value = "regionCount", key = "#regionCode")
-public Long countByRegion(String regionCode) { ...}
-```
-
-### 6. N+1 문제 방지
+### 5. N+1 문제 방지
 
 **Fetch Join 활용**:
 
@@ -1220,7 +1268,7 @@ size();  // 각 장소마다 쿼리 발생
 List<PlaceInfo> findAllWithImages();
 ```
 
-### 7. 배치 처리
+### 6. 배치 처리
 
 **Batch Size 설정**:
 
@@ -1265,21 +1313,18 @@ docker run -d \
   -p 5432:5432 \
   postgis/postgis:16-3.4
 
-# 2. Redis 실행
+# 2. Kafka 실행
 docker run -d \
-  --name redis \
-  -p 6379:6379 \
-  redis:7-alpine
+  --name kafka \
+  -p 9092:9092 \
+  -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
+  confluentinc/cp-kafka:7.4.0
 
-# 3. Kafka 실행 (docker-compose)
-cd docker
-docker-compose up -d kafka
-
-# 4. 데이터베이스 스키마 생성
+# 3. 데이터베이스 스키마 생성
 psql -h localhost -U postgres -d place_info -f src/main/resources/sql/schema.sql
 psql -h localhost -U postgres -d place_info -f src/main/resources/sql/data.sql
 
-# 5. 애플리케이션 실행
+# 4. 애플리케이션 실행
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
@@ -1320,10 +1365,6 @@ spring:
         format_sql: true
         dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
 
-  redis:
-    host: localhost
-    port: 6379
-
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -1337,79 +1378,11 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 ```
 
-#### application-prod.yaml
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
-    username: ${DATABASE_USER_NAME}
-    password: ${DATABASE_PASSWORD}
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: validate
-
-  redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT}
-
-  kafka:
-    bootstrap-servers:
-      - ${KAFKA_URL1}
-      - ${KAFKA_URL2}
-      - ${KAFKA_URL3}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: when-authorized
-```
-
 ---
 
 ## 배포
 
 ### Docker Compose
-
-#### 아키텍처
-
-```
-┌─────────────────┐
-│  API Gateway    │ (로드 밸런서)
-└────────┬────────┘
-         │
-    ┌────┴────┬────────┐
-    │         │        │
-┌───▼──┐  ┌───▼──┐  ┌──▼───┐
-│Place │  │Place │  │Place │
-│Info  │  │Info  │  │Info  │
-│  1   │  │  2   │  │  3   │
-└──┬───┘  └──┬───┘  └──┬───┘
-   └─────────┼─────────┘
-             │
-    ┌────────▼────────┐
-    │  PostgreSQL     │
-    │  + PostGIS      │
-    └─────────────────┘
-             │
-    ┌────────▼────────┐
-    │     Redis       │
-    └─────────────────┘
-             │
-    ┌────────▼────────┐
-    │ Kafka Cluster   │
-    └─────────────────┘
-```
 
 #### docker-compose.yml
 
@@ -1430,17 +1403,8 @@ services:
     networks:
       - place-info-network
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - place-info-network
-
-  place-info-service-1:
-    image: place-info-server:1.0.0
+  place-info-service:
+    image: place-info-server:1.1.0
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DATABASE_HOST=postgres-postgis
@@ -1448,14 +1412,11 @@ services:
       - DATABASE_NAME=place_info
       - DATABASE_USER_NAME=postgres
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - KAFKA_URL1=kafka1:9091
       - KAFKA_URL2=kafka2:9092
       - KAFKA_URL3=kafka3:9093
     depends_on:
       - postgres-postgis
-      - redis
     networks:
       - place-info-network
       - infra-network
@@ -1467,7 +1428,6 @@ services:
 
 volumes:
   postgres-data:
-  redis-data:
 
 networks:
   place-info-network:
@@ -1508,20 +1468,16 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 ./gradlew clean build
 
 # 2. Docker 이미지 생성
-docker build -t place-info-server:1.0.0 .
+docker build -t place-info-server:1.1.0 .
 
-# 3. Docker Hub 푸시 (선택사항)
-docker tag place-info-server:1.0.0 username/place-info-server:1.0.0
-docker push username/place-info-server:1.0.0
-
-# 4. 인프라 시작
+# 3. 인프라 시작
 docker-compose up -d
 
-# 5. 헬스 체크
+# 4. 헬스 체크
 curl http://localhost:8080/actuator/health
 
-# 6. 로그 확인
-docker-compose logs -f place-info-service-1
+# 5. 로그 확인
+docker-compose logs -f place-info-service
 ```
 
 ---
@@ -1532,15 +1488,28 @@ docker-compose logs -f place-info-service-1
 src/main/java/com/teambind/placeinfoserver/place/
 ├── controller/
 │   ├── PlaceRegisterController.java         # Command API
-│   └── PlaceSearchController.java           # Query API
+│   ├── PlaceSearchController.java           # Query API
+│   └── AdminController.java                 # Admin API
 │
 ├── service/
-│   ├── command/                              # CQRS - Command
-│   │   ├── PlaceRegisterService.java
+│   ├── usecase/                             # NEW in v1.1
+│   │   ├── command/                         # Command UseCases
+│   │   │   ├── RegisterPlaceUseCase.java
+│   │   │   ├── UpdatePlaceUseCase.java
+│   │   │   ├── DeletePlaceUseCase.java
+│   │   │   ├── ActivatePlaceUseCase.java
+│   │   │   ├── DeactivatePlaceUseCase.java
+│   │   │   ├── ApprovePlaceUseCase.java
+│   │   │   └── RejectPlaceUseCase.java
+│   │   ├── query/                           # Query UseCases
+│   │   │   ├── GetPlaceDetailUseCase.java
+│   │   │   ├── SearchPlacesUseCase.java
+│   │   │   └── GetPlacesByUserUseCase.java
+│   │   └── common/                          # Common Utilities
+│   │       └── IdParser.java
+│   ├── command/                             # Legacy Services
 │   │   ├── PlaceLocationUpdateService.java
 │   │   └── PlaceImageUpdateService.java
-│   ├── query/                                # CQRS - Query
-│   │   └── PlaceQueryService.java
 │   └── mapper/
 │       └── PlaceMapper.java
 │
@@ -1564,6 +1533,9 @@ src/main/java/com/teambind/placeinfoserver/place/
 │   │   ├── PhoneNumber.java
 │   │   ├── Email.java
 │   │   └── Url.java
+│   ├── factory/                              # Factory Pattern
+│   │   ├── PlaceInfoFactory.java
+│   │   └── PlaceLocationFactory.java
 │   └── enums/
 │       ├── ApprovalStatus.java
 │       └── PlaceOperationType.java
@@ -1587,26 +1559,54 @@ src/main/java/com/teambind/placeinfoserver/place/
 │
 ├── common/
 │   ├── exception/
-│   │   ├── ErrorCode.java                    # 60+ 에러 코드
-│   │   └── PlaceException.java
+│   │   ├── ErrorCode.java
+│   │   ├── domain/
+│   │   │   └── PlaceNotFoundException.java
+│   │   └── application/
+│   │       └── InvalidRequestException.java
 │   ├── config/
 │   │   ├── JpaConfig.java
 │   │   ├── QuerydslConfig.java
-│   │   ├── KafkaConfig.java
-│   │   └── RedisConfig.java
+│   │   └── KafkaConfig.java
 │   └── util/
-│       └── PlaceIdGenerator.java
+│       ├── generator/
+│       │   ├── PrimaryKeyGenerator.java
+│       │   └── Snowflake.java
+│       ├── address/
+│       │   ├── strategy/
+│       │   │   ├── AddressParsingStrategy.java
+│       │   │   ├── KakaoAddressParsingStrategy.java
+│       │   │   ├── NaverAddressParsingStrategy.java
+│       │   │   └── ManualAddressParsingStrategy.java
+│       │   └── exception/
+│       │       ├── AddressParsingException.java
+│       │       └── UnsupportedAddressSourceException.java
+│       ├── geometry/
+│       │   └── GeometryUtil.java
+│       ├── json/
+│       │   ├── JsonUtil.java
+│       │   └── JsonUtilWithObjectMapper.java
+│       └── AddressParser.java
 │
 └── test/
     ├── controller/
     │   ├── PlaceRegisterControllerTest.java
     │   └── PlaceSearchControllerTest.java
+    ├── usecase/                              # NEW in v1.1
+    │   ├── command/
+    │   │   ├── RegisterPlaceUseCaseTest.java
+    │   │   ├── UpdatePlaceUseCaseTest.java
+    │   │   ├── DeletePlaceUseCaseTest.java
+    │   │   ├── ActivatePlaceUseCaseTest.java
+    │   │   └── ApprovePlaceUseCaseTest.java
+    │   ├── query/
+    │   │   └── GetPlaceDetailUseCaseTest.java
+    │   └── common/
+    │       └── IdParserTest.java
     ├── service/
     │   ├── command/
-    │   │   ├── PlaceRegisterServiceTest.java
     │   │   └── PlaceLocationUpdateServiceTest.java
-    │   └── query/
-    │       └── PlaceQueryServiceTest.java
+    │   └── PlaceAdvancedSearchServiceTest.java
     ├── repository/
     │   └── PlaceAdvancedSearchRepositoryTest.java
     ├── entity/
@@ -1623,7 +1623,119 @@ src/main/java/com/teambind/placeinfoserver/place/
 
 ## 주요 개선사항
 
-### 최근 리팩토링 (2025-10-28)
+### v1.1 (2025-11-03)
+
+#### 1. UseCase 패턴 도입 (CQRS)
+
+**Before**:
+
+```java
+// 하나의 Service에 7개 메서드
+@Service
+public class PlaceRegisterService {
+	public PlaceInfoResponse registerPlace(...)
+	
+	public PlaceInfoResponse updatePlace(...)
+	
+	public void deletePlace(...)
+	
+	public void activatePlace(...)
+	
+	public void deactivatePlace(...)
+	
+	public void approvePlace(...)
+	
+	public void rejectPlace(...)
+}
+```
+
+**After**:
+
+```java
+// 7개의 독립적인 Command UseCase
+@Service
+public class RegisterPlaceUseCase { ...
+}
+
+@Service
+public class UpdatePlaceUseCase { ...
+}
+
+@Service
+public class DeletePlaceUseCase { ...
+}
+
+// Query UseCases
+@Service
+public class GetPlaceDetailUseCase { ...
+}
+
+@Service
+public class SearchPlacesUseCase { ...
+}
+```
+
+**장점**:
+
+- 단일 책임 원칙(SRP) 준수
+- 개방-폐쇄 원칙(OCP) 준수
+- 높은 응집도, 낮은 결합도
+- UseCase별 독립 테스트 가능
+- 명확한 비즈니스 의도 표현
+
+#### 2. Controller 리팩토링
+
+Controller가 UseCase를 직접 호출하도록 변경:
+
+```java
+
+@RestController
+@RequiredArgsConstructor
+public class PlaceRegisterController {
+	private final RegisterPlaceUseCase registerPlaceUseCase;
+	private final UpdatePlaceUseCase updatePlaceUseCase;
+	private final DeletePlaceUseCase deletePlaceUseCase;
+	// ...
+}
+```
+
+#### 3. 테스트 커버리지 확대
+
+- UseCase별 통합 테스트 추가: 56개 케이스
+- PlaceAdvancedSearchServiceTest 마이그레이션
+- 총 459개 테스트 (99.3% 성공률)
+
+#### 4. Exception 계층 구조화
+
+```
+PlaceException (부모)
+├── Domain Exception
+│   ├── PlaceNotFoundException
+│   ├── PlaceAlreadyExistsException
+│   └── InvalidPlaceStateException
+└── Application Exception
+    ├── InvalidRequestException
+    ├── UnauthorizedAccessException
+    └── ValidationFailedException
+```
+
+#### 5. Factory 패턴 적용
+
+복잡한 엔티티 생성 로직을 Factory로 분리:
+
+```java
+public class PlaceInfoFactory {
+	public static PlaceInfo create(PlaceRegisterRequest request) {
+		// 복잡한 생성 로직
+	}
+}
+```
+
+#### 6. AddressParser Strategy 패턴
+
+주소 파싱 로직에 Strategy 패턴 적용하여 확장성 개선
+
+### v1.0 (2025-10-28)
 
 #### 1. CQRS 패턴 적용
 
@@ -1646,26 +1758,11 @@ src/main/java/com/teambind/placeinfoserver/place/
 - 체계적인 카테고리화 (PLACE, LOCATION, SEARCH, CONTACT 등)
 - 명확한 에러 메시지
 
-#### 4. Enum 타입 추가
-
-- PlaceOperationType: 장소 상태 변경 타입 (ACTIVATE, DEACTIVATE)
-- ApprovalStatus: 승인 상태 (PENDING, APPROVED, REJECTED)
-
-#### 5. Event 불변성 강화
-
-- @Data → @Getter + final fields
-- ImagesChangeEventWrapper 방어적 복사
-
-#### 6. 테스트 안정성 개선
+#### 4. 테스트 안정성 개선
 
 - Testcontainers Singleton 패턴 적용
 - 121개 실패 → 0개 실패 (100% 성공률)
 - BaseIntegrationTest 개선
-
-#### 7. 네이밍 컨벤션 개선
-
-- eventConsumer → PlaceImageEventConsumer
-- 명확한 Java 네이밍 규칙 적용
 
 ---
 
@@ -1673,16 +1770,13 @@ src/main/java/com/teambind/placeinfoserver/place/
 
 ### 관련 문서
 
-- [CQRS 패턴 가이드](docs/README.md)
-- [MSA 분산 트랜잭션 가이드](../../docs/msa-distributed-transaction-guide.md)
-- [Saga 패턴 구현 체크리스트](../../docs/saga-implementation-checklist.md)
-- [Saga 코드 템플릿](../../docs/saga-code-templates.md)
-- [API 명세서](docs/SEARCH_API.md)
-- [DTO 매퍼 사용법](docs/DTO_MAPPER_USAGE.md)
+- [CQRS 패턴 가이드](docs/cqrs-pattern-guide.md)
+- [UseCase 패턴 가이드](docs/usecase-pattern-guide.md)
+- [API 명세서](docs/api-specification.md)
 
 ### 메타 정보
 
 - **작성일**: 2025-10-28
-- **최종 업데이트**: 2025-10-28
-- **버전**: 1.0.0
-- **저자**: DDING
+- **최종 업데이트**: 2025-11-03
+- **버전**: 1.1.0
+- **저자**: DDING JOO

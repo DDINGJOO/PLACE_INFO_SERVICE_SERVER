@@ -332,18 +332,12 @@ public class PlaceMapper {
 			return;
 		}
 		
-		if (request.getContact() != null) {
-			entity.setContact(request.getContact());
-		}
-		if (request.getEmail() != null) {
-			entity.setEmail(request.getEmail());
-		}
-		if (request.getWebsites() != null) {
-			entity.setWebsites(request.getWebsites());
-		}
-		if (request.getSocialLinks() != null) {
-			entity.setSocialLinks(request.getSocialLinks());
-		}
+		entity.updateContactInfo(
+				request.getContact(),
+				request.getEmail(),
+				request.getWebsites(),
+				request.getSocialLinks()
+		);
 	}
 	
 	/**
@@ -353,19 +347,19 @@ public class PlaceMapper {
 		if (entity == null || request == null) {
 			return;
 		}
-		
+
 		if (request.getAddressData() != null) {
 			// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
-			entity.setAddress(toAddressEntity(addressRequest));
+			entity.updateAddress(toAddressEntity(addressRequest));
 		}
-		
+
 		if (request.getLatitude() != null && request.getLongitude() != null) {
 			entity.setLatLng(request.getLatitude(), request.getLongitude());
 		}
 		
 		if (request.getLocationGuide() != null) {
-			entity.setLocationGuide(request.getLocationGuide());
+			entity.updateLocationGuide(request.getLocationGuide());
 		}
 	}
 	
@@ -377,15 +371,11 @@ public class PlaceMapper {
 			return;
 		}
 		
-		if (request.getAvailable() != null) {
-			entity.setAvailable(request.getAvailable());
-		}
-		if (request.getParkingType() != null) {
-			entity.setParkingType(request.getParkingType());
-		}
-		if (request.getDescription() != null) {
-			entity.setDescription(request.getDescription());
-		}
+		entity.updateParkingInfo(
+				request.getAvailable(),
+				request.getParkingType(),
+				request.getDescription()
+		);
 	}
 	
 	// ========== List 변환 ==========

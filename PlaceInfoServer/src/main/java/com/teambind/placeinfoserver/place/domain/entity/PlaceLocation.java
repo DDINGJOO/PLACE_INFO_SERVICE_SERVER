@@ -90,6 +90,36 @@ public class PlaceLocation extends BaseEntity {
 	}
 	
 	/**
+	 * 주소 정보 업데이트
+	 */
+	public void updateAddress(Address address) {
+		if (address != null) {
+			this.address = address;
+		}
+	}
+	
+	/**
+	 * 위치 안내 정보 업데이트
+	 */
+	public void updateLocationGuide(String locationGuide) {
+		this.locationGuide = locationGuide;
+	}
+	
+	/**
+	 * 주소 설정 (테스트용)
+	 */
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+	
+	/**
+	 * 위치 안내 설정 (테스트용)
+	 */
+	public void setLocationGuide(String locationGuide) {
+		this.locationGuide = locationGuide;
+	}
+
+	/**
 	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
 	 * PlaceInfo.setLocation()에서만 호출되어야 함
 	 */

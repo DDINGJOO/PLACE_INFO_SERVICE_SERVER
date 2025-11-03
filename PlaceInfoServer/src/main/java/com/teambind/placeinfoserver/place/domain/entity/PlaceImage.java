@@ -43,4 +43,11 @@ public class PlaceImage {
 	void setPlaceInfo(PlaceInfo placeInfo) {
 		this.placeInfo = placeInfo;
 	}
+	
+	/**
+	 * 이미지 URL 설정 (테스트용)
+	 */
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
 }

@@ -2,7 +2,6 @@ package com.teambind.placeinfoserver.place.domain.factory;
 
 import com.teambind.placeinfoserver.place.domain.entity.PlaceContact;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
-import com.teambind.placeinfoserver.place.domain.vo.Url;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,8 +31,8 @@ public class PlaceContactFactory {
 			PlaceInfo placeInfo,
 			String contact,
 			String email,
-			List<Url> websites,
-			List<Url> socialLinks
+			List<String> websites,
+			List<String> socialLinks
 	) {
 		// 기본 유효성 검증
 		validateContact(contact);

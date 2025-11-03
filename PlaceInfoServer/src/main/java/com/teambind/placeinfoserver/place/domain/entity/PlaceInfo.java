@@ -271,6 +271,41 @@ public class PlaceInfo extends BaseEntity {
 	}
 	
 	/**
+	 * 승인 상태 설정 (테스트용)
+	 */
+	public void setApprovalStatus(ApprovalStatus status) {
+		this.approvalStatus = status;
+	}
+	
+	/**
+	 * 활성화 상태 설정 (테스트용)
+	 */
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+	/**
+	 * 이미지 목록 설정 (테스트용)
+	 */
+	public void setImages(List<PlaceImage> images) {
+		this.images = images;
+	}
+	
+	/**
+	 * 키워드 목록 설정 (테스트용)
+	 */
+	public void setKeywords(Set<Keyword> keywords) {
+		this.keywords = keywords;
+	}
+	
+	/**
+	 * 업체명 설정 (테스트용)
+	 */
+	public void setPlaceName(String placeName) {
+		this.placeName = placeName;
+	}
+	
+	/**
 	 * 평점 업데이트 (외부 서비스에서 호출)
 	 */
 	public void updateRating(double average, int count) {

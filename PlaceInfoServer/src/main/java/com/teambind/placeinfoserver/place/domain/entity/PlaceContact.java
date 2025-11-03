@@ -99,6 +99,52 @@ public class PlaceContact extends BaseEntity {
 	}
 	
 	/**
+	 * 연락처 정보 업데이트
+	 */
+	public void updateContactInfo(String contact, String email, List<String> websites, List<String> socialLinks) {
+		if (contact != null) {
+			this.contact = contact;
+		}
+		if (email != null) {
+			this.email = email;
+		}
+		if (websites != null) {
+			this.websites = websites;
+		}
+		if (socialLinks != null) {
+			this.socialLinks = socialLinks;
+		}
+	}
+	
+	/**
+	 * 연락처 설정 (테스트용)
+	 */
+	public void setContact(String contact) {
+		this.contact = contact;
+	}
+	
+	/**
+	 * 이메일 설정 (테스트용)
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	/**
+	 * 웹사이트 목록 설정 (테스트용)
+	 */
+	public void setWebsites(List<String> websites) {
+		this.websites = websites;
+	}
+	
+	/**
+	 * 소셜 링크 목록 설정 (테스트용)
+	 */
+	public void setSocialLinks(List<String> socialLinks) {
+		this.socialLinks = socialLinks;
+	}
+
+	/**
 	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
 	 * PlaceInfo.setContact()에서만 호출되어야 함
 	 */

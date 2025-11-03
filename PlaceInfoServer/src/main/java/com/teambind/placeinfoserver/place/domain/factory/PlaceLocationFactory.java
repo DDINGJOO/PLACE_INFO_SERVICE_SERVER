@@ -4,7 +4,6 @@ import com.teambind.placeinfoserver.place.common.util.geometry.GeometryUtil;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceLocation;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
-import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +17,7 @@ import org.springframework.stereotype.Component;
  * - PlaceInfo와의 연관관계 설정
  */
 @Component
-@RequiredArgsConstructor
 public class PlaceLocationFactory {
-	
-	private final GeometryUtil geometryUtil;
 	
 	/**
 	 * PlaceLocation 생성
@@ -44,9 +40,9 @@ public class PlaceLocationFactory {
 		
 		// 좌표 유효성 검증
 		validateCoordinates(latitude, longitude);
-		
+
 		// PostGIS Point 생성
-		Point coordinates = geometryUtil.createPoint(longitude, latitude);
+		Point coordinates = GeometryUtil.createPoint(latitude, longitude);
 		
 		return PlaceLocation.builder()
 				.placeInfo(placeInfo)
@@ -66,9 +62,9 @@ public class PlaceLocationFactory {
 			String province,
 			String city,
 			String district,
-			String streetAddress,
-			String detailAddress,
-			String zipCode,
+			String fullAddress,
+			String addressDetail,
+			String postalCode,
 			Double latitude,
 			Double longitude
 	) {
@@ -77,9 +73,9 @@ public class PlaceLocationFactory {
 				.province(province)
 				.city(city)
 				.district(district)
-				.streetAddress(streetAddress)
-				.detailAddress(detailAddress)
-				.zipCode(zipCode)
+				.fullAddress(fullAddress)
+				.addressDetail(addressDetail)
+				.postalCode(postalCode)
 				.build();
 		
 		return create(placeInfo, address, latitude, longitude);

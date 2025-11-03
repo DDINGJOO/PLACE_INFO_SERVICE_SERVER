@@ -101,7 +101,7 @@ class PlaceAdvancedSearchRepositoryImplTest {
 			// Then
 			assertThat(response).isNotNull();
 			assertThat(response.getItems()).hasSize(1);
-			assertThat(response.getItems().get(0).getId()).isEqualTo(approved.getId());
+			assertThat(response.getItems().get(0).getId()).isEqualTo(String.valueOf(approved.getId()));
 			assertThat(response.getMetadata()).isNotNull();
 			assertThat(response.getMetadata().getSearchTime()).isPositive();
 		}
@@ -450,7 +450,7 @@ class PlaceAdvancedSearchRepositoryImplTest {
 			
 			// Then
 			assertThat(response.getItems()).hasSize(1);
-			assertThat(response.getItems().get(0).getId()).isEqualTo(match.getId());
+			assertThat(response.getItems().get(0).getId()).isEqualTo(String.valueOf(match.getId()));
 		}
 	}
 	
@@ -513,7 +513,7 @@ class PlaceAdvancedSearchRepositoryImplTest {
 			assertThat(response.getItems()).hasSize(1);
 			PlaceSearchResponse.PlaceSearchItem item = response.getItems().get(0);
 			
-			assertThat(item.getId()).isEqualTo(place.getId());
+			assertThat(item.getId()).isEqualTo(String.valueOf(place.getId()));
 			assertThat(item.getPlaceName()).isEqualTo(place.getPlaceName());
 			assertThat(item.getDescription()).isEqualTo(place.getDescription());
 			assertThat(item.getCategory()).isEqualTo(place.getCategory());

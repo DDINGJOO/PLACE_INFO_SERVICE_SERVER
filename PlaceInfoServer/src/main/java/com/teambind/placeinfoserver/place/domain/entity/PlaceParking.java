@@ -2,7 +2,10 @@ package com.teambind.placeinfoserver.place.domain.entity;
 
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 업체 주차 정보 엔티티
@@ -12,7 +15,6 @@ import lombok.*;
 @Entity
 @Table(name = "place_parkings")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -72,5 +74,48 @@ public class PlaceParking extends BaseEntity {
 	 */
 	public boolean isFreeParking() {
 		return available && parkingType == ParkingType.FREE;
+	}
+	
+	/**
+	 * 주차 정보 업데이트
+	 */
+	public void updateParkingInfo(Boolean available, ParkingType parkingType, String description) {
+		if (available != null) {
+			this.available = available;
+		}
+		if (parkingType != null) {
+			this.parkingType = parkingType;
+		}
+		if (description != null) {
+			this.description = description;
+		}
+	}
+	
+	/**
+	 * 주차 가능 여부 설정 (테스트용)
+	 */
+	public void setAvailable(Boolean available) {
+		this.available = available;
+	}
+	
+	/**
+	 * 주차 유형 설정 (테스트용)
+	 */
+	public void setParkingType(ParkingType parkingType) {
+		this.parkingType = parkingType;
+	}
+	
+	/**
+	 * 주차 설명 설정 (테스트용)
+	 */
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/**
+	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
+	 */
+	void setPlaceInfo(PlaceInfo placeInfo) {
+		this.placeInfo = placeInfo;
 	}
 }

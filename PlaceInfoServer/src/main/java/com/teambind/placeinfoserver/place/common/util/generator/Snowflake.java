@@ -80,6 +80,12 @@ public class Snowflake implements PrimaryKeyGenerator {
 	}
 	
 	@Override
+	public Long generateLongKey() {
+		return nextId();
+	}
+	
+	@Override
+	@Deprecated(since = "1.1", forRemoval = false)
 	public String generateKey() {
 		return String.valueOf(nextId());
 	}

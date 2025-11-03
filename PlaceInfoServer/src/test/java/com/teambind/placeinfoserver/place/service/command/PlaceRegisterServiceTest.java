@@ -71,7 +71,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 // 			assertThat(response.getUserId()).isEqualTo(request.getUserId());
 			
 			// DB에 실제로 저장되었는지 확인
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElse(null);
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElse(null);
 			assertThat(savedPlace).isNotNull();
 			assertThat(savedPlace.getPlaceName()).isEqualTo(request.getPlaceName());
 		}
@@ -86,7 +86,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			PlaceInfoResponse response = placeRegisterService.registerPlace(request);
 			
 			// Then
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElseThrow();
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElseThrow();
 			assertThat(savedPlace.getApprovalStatus()).isEqualTo(ApprovalStatus.PENDING);
 			assertThat(savedPlace.getIsActive()).isTrue(); // 기본값 확인
 		}
@@ -101,7 +101,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			PlaceInfoResponse response = placeRegisterService.registerPlace(request);
 			
 			// Then
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElseThrow();
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElseThrow();
 			assertThat(savedPlace.getContact()).isNotNull();
 // 			assertThat(savedPlace.getContact().getContact()).isEqualTo(request.getContact());
 // 			assertThat(savedPlace.getContact().getContact()).isEqualTo(request.getContact());
@@ -117,7 +117,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			PlaceInfoResponse response = placeRegisterService.registerPlace(request);
 			
 			// Then
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElseThrow();
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElseThrow();
 			assertThat(savedPlace.getLocation()).isNotNull();
 // 			assertThat(savedPlace.getLocation().getLatitude()).isEqualTo(request.getLatitude());
 // 			assertThat(savedPlace.getLocation().getLatitude()).isEqualTo(request.getLatitude());
@@ -135,7 +135,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			PlaceInfoResponse response = placeRegisterService.registerPlace(request);
 			
 			// Then
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElseThrow();
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElseThrow();
 			assertThat(savedPlace.getParking()).isNotNull();
 // 			assertThat(savedPlace.getParking().getAvailable()).isEqualTo(request.getParkingAvailable());
 		}
@@ -162,7 +162,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			
 			// When
 			PlaceInfoResponse response = placeRegisterService.updatePlace(
-					existingPlace.getId(),
+					String.valueOf(existingPlace.getId()),
 					updateRequest
 			);
 			
@@ -224,7 +224,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.activatePlace(inactivePlace.getId());
+			placeRegisterService.activatePlace(String.valueOf(inactivePlace.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -243,7 +243,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.deactivatePlace(activePlace.getId());
+			placeRegisterService.deactivatePlace(String.valueOf(activePlace.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -276,7 +276,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.approvePlace(pendingPlace.getId());
+			placeRegisterService.approvePlace(String.valueOf(pendingPlace.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -295,7 +295,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.rejectPlace(pendingPlace.getId());
+			placeRegisterService.rejectPlace(String.valueOf(pendingPlace.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -323,7 +323,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.approvePlace(approvedPlace.getId());
+			placeRegisterService.approvePlace(String.valueOf(approvedPlace.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -351,7 +351,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			placeRegisterService.updatePlace(place.getId(), updateRequest);
+			placeRegisterService.updatePlace(String.valueOf(place.getId()), updateRequest);
 			// flush 없이 조회
 			
 			// Then
@@ -369,8 +369,8 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			placeRegisterService.approvePlace(place.getId());
-			placeRegisterService.activatePlace(place.getId());
+			placeRegisterService.approvePlace(String.valueOf(place.getId()));
+			placeRegisterService.activatePlace(String.valueOf(place.getId()));
 			entityManager.flush();
 			entityManager.clear();
 			
@@ -398,7 +398,7 @@ class PlaceRegisterServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// Then
-			PlaceInfo savedPlace = placeInfoRepository.findById(response.getId()).orElseThrow();
+			PlaceInfo savedPlace = placeInfoRepository.findById(Long.parseLong(response.getId())).orElseThrow();
 			
 			// Cascade 저장 확인
 			assertThat(savedPlace.getContact()).isNotNull();

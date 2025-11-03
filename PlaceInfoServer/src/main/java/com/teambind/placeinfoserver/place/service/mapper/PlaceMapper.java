@@ -2,6 +2,9 @@ package com.teambind.placeinfoserver.place.service.mapper;
 
 import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceContactFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceLocationFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceParkingFactory;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
 import com.teambind.placeinfoserver.place.dto.response.*;
@@ -14,8 +17,11 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class PlaceMapper {
-	
+
 	private final AddressParser addressParser;
+	private final PlaceContactFactory contactFactory;
+	private final PlaceLocationFactory locationFactory;
+	private final PlaceParkingFactory parkingFactory;
 	
 	// ========== Entity -> Response DTO ==========
 	
@@ -26,9 +32,9 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-		
+
 		return PlaceInfoResponse.builder()
-				.id(entity.getId())
+				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.userId(entity.getUserId())
 				.placeName(entity.getPlaceName())
 				.description(entity.getDescription())
@@ -59,12 +65,12 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-		
+
 		String thumbnailUrl = null;
 		if (!entity.getImages().isEmpty()) {
 			thumbnailUrl = entity.getImages().get(0).getImageUrl();
 		}
-		
+
 		String shortAddress = null;
 		if (entity.getLocation() != null && entity.getLocation().getAddress() != null) {
 			shortAddress = entity.getLocation().getAddress().getShortAddress();
@@ -76,7 +82,7 @@ public class PlaceMapper {
 		}
 		
 		return PlaceInfoSummaryResponse.builder()
-				.id(entity.getId())
+				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.placeName(entity.getPlaceName())
 				.category(entity.getCategory())
 				.placeType(entity.getPlaceType())
@@ -178,13 +184,13 @@ public class PlaceMapper {
 	/**
 	 * PlaceRegisterRequest -> PlaceInfo (신규 등록)
 	 */
-	public PlaceInfo toEntity(PlaceRegisterRequest request, String generatedId) {
+	public PlaceInfo toEntity(PlaceRegisterRequest request, Long generatedId) {
 		if (request == null) {
 			return null;
 		}
 		
 		PlaceInfo placeInfo = PlaceInfo.builder()
-				.id(generatedId)
+				.id(generatedId)  // Long 타입 ID (내부 사용)
 				.userId(request.getPlaceOwnerId())
 				.placeName(request.getPlaceName())
 				.description(request.getDescription())
@@ -209,42 +215,45 @@ public class PlaceMapper {
 	}
 	
 	/**
-	 * PlaceContactRequest -> PlaceContact
+	 * PlaceContactRequest -> PlaceContact (Factory 사용)
 	 */
 	public PlaceContact toContactEntity(PlaceContactRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
 		
-		return PlaceContact.builder()
-				.contact(request.getContact())
-				.email(request.getEmail())
-				.websites(request.getWebsites())
-				.socialLinks(request.getSocialLinks())
-				.placeInfo(placeInfo)
-				.build();
+		return contactFactory.create(
+				placeInfo,
+				request.getContact(),
+				request.getEmail(),
+				request.getWebsites(),
+				request.getSocialLinks()
+		);
 	}
 	
 	/**
-	 * PlaceLocationRequest -> PlaceLocation
+	 * PlaceLocationRequest -> PlaceLocation (Factory 사용)
 	 */
 	public PlaceLocation toLocationEntity(PlaceLocationRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
-		
+
 		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 		AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
+		Address address = toAddressEntity(addressRequest);
 		
-		PlaceLocation location = PlaceLocation.builder()
-				.address(toAddressEntity(addressRequest))
-				.locationGuide(request.getLocationGuide())
-				.placeInfo(placeInfo)
-				.build();
+		// Factory를 사용하여 PlaceLocation 생성
+		PlaceLocation location = locationFactory.create(
+				placeInfo,
+				address,
+				request.getLatitude(),
+				request.getLongitude()
+		);
 		
-		// 좌표 설정 (GeometryUtil 사용)
-		if (request.getLatitude() != null && request.getLongitude() != null) {
-			location.setLatLng(request.getLatitude(), request.getLongitude());
+		// 위치 안내 정보 설정
+		if (request.getLocationGuide() != null) {
+			location.updateLocationGuide(request.getLocationGuide());
 		}
 		
 		return location;
@@ -269,19 +278,19 @@ public class PlaceMapper {
 	}
 	
 	/**
-	 * PlaceParkingUpdateRequest -> PlaceParking
+	 * PlaceParkingUpdateRequest -> PlaceParking (Factory 사용)
 	 */
 	public PlaceParking toParkingEntity(PlaceParkingUpdateRequest request, PlaceInfo placeInfo) {
 		if (request == null) {
 			return null;
 		}
 		
-		return PlaceParking.builder()
-				.available(request.getAvailable())
-				.parkingType(request.getParkingType())
-				.description(request.getDescription())
-				.placeInfo(placeInfo)
-				.build();
+		return parkingFactory.create(
+				placeInfo,
+				request.getAvailable(),
+				request.getParkingType(),
+				request.getDescription()
+		);
 	}
 	
 	// ========== Update 메서드 (기존 엔티티 업데이트) ==========
@@ -332,18 +341,12 @@ public class PlaceMapper {
 			return;
 		}
 		
-		if (request.getContact() != null) {
-			entity.setContact(request.getContact());
-		}
-		if (request.getEmail() != null) {
-			entity.setEmail(request.getEmail());
-		}
-		if (request.getWebsites() != null) {
-			entity.setWebsites(request.getWebsites());
-		}
-		if (request.getSocialLinks() != null) {
-			entity.setSocialLinks(request.getSocialLinks());
-		}
+		entity.updateContactInfo(
+				request.getContact(),
+				request.getEmail(),
+				request.getWebsites(),
+				request.getSocialLinks()
+		);
 	}
 	
 	/**
@@ -353,19 +356,19 @@ public class PlaceMapper {
 		if (entity == null || request == null) {
 			return;
 		}
-		
+
 		if (request.getAddressData() != null) {
 			// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
-			entity.setAddress(toAddressEntity(addressRequest));
+			entity.updateAddress(toAddressEntity(addressRequest));
 		}
-		
+
 		if (request.getLatitude() != null && request.getLongitude() != null) {
 			entity.setLatLng(request.getLatitude(), request.getLongitude());
 		}
 		
 		if (request.getLocationGuide() != null) {
-			entity.setLocationGuide(request.getLocationGuide());
+			entity.updateLocationGuide(request.getLocationGuide());
 		}
 	}
 	
@@ -377,15 +380,11 @@ public class PlaceMapper {
 			return;
 		}
 		
-		if (request.getAvailable() != null) {
-			entity.setAvailable(request.getAvailable());
-		}
-		if (request.getParkingType() != null) {
-			entity.setParkingType(request.getParkingType());
-		}
-		if (request.getDescription() != null) {
-			entity.setDescription(request.getDescription());
-		}
+		entity.updateParkingInfo(
+				request.getAvailable(),
+				request.getParkingType(),
+				request.getDescription()
+		);
 	}
 	
 	// ========== List 변환 ==========

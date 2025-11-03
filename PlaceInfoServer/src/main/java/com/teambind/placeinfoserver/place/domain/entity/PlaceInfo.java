@@ -2,7 +2,10 @@ package com.teambind.placeinfoserver.place.domain.entity;
 
 import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -29,7 +32,6 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE place_info SET deleted_at = NOW(), deleted_by = ? WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,7 +39,7 @@ public class PlaceInfo extends BaseEntity {
 	
 	@Id
 	@Column(name = "id", nullable = false)
-	private String id;
+	private Long id;
 	
 	/**
 	 * 유저 ID (외부 서비스 참조)
@@ -266,6 +268,41 @@ public class PlaceInfo extends BaseEntity {
 	 */
 	public void reject() {
 		this.approvalStatus = ApprovalStatus.REJECTED;
+	}
+	
+	/**
+	 * 승인 상태 설정 (테스트용)
+	 */
+	public void setApprovalStatus(ApprovalStatus status) {
+		this.approvalStatus = status;
+	}
+	
+	/**
+	 * 활성화 상태 설정 (테스트용)
+	 */
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+	/**
+	 * 이미지 목록 설정 (테스트용)
+	 */
+	public void setImages(List<PlaceImage> images) {
+		this.images = images;
+	}
+	
+	/**
+	 * 키워드 목록 설정 (테스트용)
+	 */
+	public void setKeywords(Set<Keyword> keywords) {
+		this.keywords = keywords;
+	}
+	
+	/**
+	 * 업체명 설정 (테스트용)
+	 */
+	public void setPlaceName(String placeName) {
+		this.placeName = placeName;
 	}
 	
 	/**

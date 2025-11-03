@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceContactFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceLocationFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceParkingFactory;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
 import com.teambind.placeinfoserver.place.dto.response.*;
@@ -21,14 +24,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceMapperTest {
-	
+
 	private PlaceMapper mapper;
 	private AddressParser addressParser;
-	
+	private PlaceContactFactory contactFactory;
+	private PlaceLocationFactory locationFactory;
+	private PlaceParkingFactory parkingFactory;
+
 	@BeforeEach
 	void setUp() {
 		addressParser = new AddressParser(new ObjectMapper());
-		mapper = new PlaceMapper(addressParser);
+		contactFactory = new PlaceContactFactory();
+		locationFactory = new PlaceLocationFactory();
+		parkingFactory = new PlaceParkingFactory();
+		mapper = new PlaceMapper(addressParser, contactFactory, locationFactory, parkingFactory);
 		PlaceTestFactory.resetSequence();
 	}
 	
@@ -48,7 +57,7 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(response).isNotNull();
-			assertThat(response.getId()).isEqualTo(placeInfo.getId());
+			assertThat(response.getId()).isEqualTo(String.valueOf(placeInfo.getId()));
 			assertThat(response.getPlaceName()).isEqualTo(placeInfo.getPlaceName());
 			assertThat(response.getDescription()).isEqualTo(placeInfo.getDescription());
 			assertThat(response.getCategory()).isEqualTo(placeInfo.getCategory());
@@ -81,7 +90,7 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(response).isNotNull();
-			assertThat(response.getId()).isEqualTo(placeInfo.getId());
+			assertThat(response.getId()).isEqualTo(String.valueOf(placeInfo.getId()));
 			assertThat(response.getPlaceName()).isEqualTo(placeInfo.getPlaceName());
 			assertThat(response.getThumbnailUrl()).isNotNull();
 			assertThat(response.getShortAddress()).isNotNull();
@@ -188,7 +197,7 @@ class PlaceMapperTest {
 		void toEntity_Success() {
 			// Given
 			PlaceRegisterRequest request = PlaceRequestFactory.createPlaceRegisterRequest();
-			String generatedId = "place_test_123";
+			Long generatedId = 123456789L;  // Long 타입 ID
 			
 			// When
 			PlaceInfo placeInfo = mapper.toEntity(request, generatedId);
@@ -327,8 +336,8 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(responses).hasSize(2);
-			assertThat(responses.get(0).getId()).isEqualTo(place1.getId());
-			assertThat(responses.get(1).getId()).isEqualTo(place2.getId());
+			assertThat(responses.get(0).getId()).isEqualTo(String.valueOf(place1.getId()));
+			assertThat(responses.get(1).getId()).isEqualTo(String.valueOf(place2.getId()));
 		}
 		
 		@Test
@@ -356,8 +365,8 @@ class PlaceMapperTest {
 			
 			// Then
 			assertThat(responses).hasSize(2);
-			assertThat(responses.get(0).getId()).isEqualTo(place1.getId());
-			assertThat(responses.get(1).getId()).isEqualTo(place2.getId());
+			assertThat(responses.get(0).getId()).isEqualTo(String.valueOf(place1.getId()));
+			assertThat(responses.get(1).getId()).isEqualTo(String.valueOf(place2.getId()));
 		}
 	}
 	

@@ -3,7 +3,10 @@ package com.teambind.placeinfoserver.place.domain.entity;
 import com.teambind.placeinfoserver.place.common.util.geometry.GeometryUtil;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -14,7 +17,6 @@ import org.locationtech.jts.geom.Point;
 @Entity
 @Table(name = "place_locations")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -85,5 +87,43 @@ public class PlaceLocation extends BaseEntity {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.coordinates = GeometryUtil.createPoint(latitude, longitude);
+	}
+	
+	/**
+	 * 주소 정보 업데이트
+	 */
+	public void updateAddress(Address address) {
+		if (address != null) {
+			this.address = address;
+		}
+	}
+	
+	/**
+	 * 위치 안내 정보 업데이트
+	 */
+	public void updateLocationGuide(String locationGuide) {
+		this.locationGuide = locationGuide;
+	}
+	
+	/**
+	 * 주소 설정 (테스트용)
+	 */
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+	
+	/**
+	 * 위치 안내 설정 (테스트용)
+	 */
+	public void setLocationGuide(String locationGuide) {
+		this.locationGuide = locationGuide;
+	}
+
+	/**
+	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
+	 * PlaceInfo.setLocation()에서만 호출되어야 함
+	 */
+	void setPlaceInfo(PlaceInfo placeInfo) {
+		this.placeInfo = placeInfo;
 	}
 }

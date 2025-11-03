@@ -1,7 +1,10 @@
 package com.teambind.placeinfoserver.place.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +17,6 @@ import java.util.List;
 @Entity
 @Table(name = "place_contacts")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -94,5 +96,59 @@ public class PlaceContact extends BaseEntity {
 			throw new IllegalStateException("소셜 링크는 최대 10개까지만 등록 가능합니다.");
 		}
 		this.socialLinks.add(socialUrl);
+	}
+	
+	/**
+	 * 연락처 정보 업데이트
+	 */
+	public void updateContactInfo(String contact, String email, List<String> websites, List<String> socialLinks) {
+		if (contact != null) {
+			this.contact = contact;
+		}
+		if (email != null) {
+			this.email = email;
+		}
+		if (websites != null) {
+			this.websites = websites;
+		}
+		if (socialLinks != null) {
+			this.socialLinks = socialLinks;
+		}
+	}
+	
+	/**
+	 * 연락처 설정 (테스트용)
+	 */
+	public void setContact(String contact) {
+		this.contact = contact;
+	}
+	
+	/**
+	 * 이메일 설정 (테스트용)
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	/**
+	 * 웹사이트 목록 설정 (테스트용)
+	 */
+	public void setWebsites(List<String> websites) {
+		this.websites = websites;
+	}
+	
+	/**
+	 * 소셜 링크 목록 설정 (테스트용)
+	 */
+	public void setSocialLinks(List<String> socialLinks) {
+		this.socialLinks = socialLinks;
+	}
+
+	/**
+	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
+	 * PlaceInfo.setContact()에서만 호출되어야 함
+	 */
+	void setPlaceInfo(PlaceInfo placeInfo) {
+		this.placeInfo = placeInfo;
 	}
 }

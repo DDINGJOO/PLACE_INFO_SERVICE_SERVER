@@ -53,7 +53,7 @@ TYPE parking_type AS ENUM (
 -- 3.1 Place Info (Aggregate Root)
 CREATE TABLE place_info
 (
-    id              VARCHAR(100) PRIMARY KEY, -- Snowflake ID
+    id INTEGER PRIMARY KEY, -- Snowflake ID
     user_id         VARCHAR(100) NOT NULL,
     place_name      VARCHAR(100) NOT NULL,
     description     VARCHAR(500),

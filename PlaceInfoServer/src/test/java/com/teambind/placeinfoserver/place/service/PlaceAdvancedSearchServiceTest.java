@@ -9,7 +9,8 @@ import com.teambind.placeinfoserver.place.fixture.PlaceRequestFactory;
 import com.teambind.placeinfoserver.place.fixture.PlaceTestFactory;
 import com.teambind.placeinfoserver.place.repository.KeywordRepository;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
-import com.teambind.placeinfoserver.place.service.query.PlaceQueryService;
+import com.teambind.placeinfoserver.place.repository.PlaceAdvancedSearchRepository;
+import com.teambind.placeinfoserver.place.service.usecase.query.SearchPlacesUseCase;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,23 +26,26 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * PlaceQueryService 통합 테스트 (CQRS - Query)
+ * SearchPlacesUseCase 통합 테스트 (CQRS - Query)
  */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-@DisplayName("PlaceQueryService 통합 테스트")
+@DisplayName("SearchPlacesUseCase 통합 테스트")
 class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
-	
+
 	@Autowired
-	private PlaceQueryService searchService;
-	
+	private SearchPlacesUseCase searchPlacesUseCase;
+
+	@Autowired
+	private PlaceAdvancedSearchRepository searchRepository;
+
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-	
+
 	@Autowired
 	private KeywordRepository keywordRepository;
-	
+
 	@Autowired
 	private EntityManager entityManager;
 	
@@ -67,9 +71,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			PlaceSearchRequest request = PlaceRequestFactory.createBasicSearchRequest();
-			
+
 			// When
-			PlaceSearchResponse response = searchService.search(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response).isNotNull();
@@ -93,9 +97,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			PlaceSearchRequest request = PlaceRequestFactory.createKeywordSearchRequest("드럼");
-			
+
 			// When
-			PlaceSearchResponse response = searchService.search(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems()).hasSize(1);
@@ -120,8 +124,8 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			PlaceSearchResponse response = searchService.search(request);
-			
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
+
 			// Then
 			assertThat(response.getItems()).hasSize(1);
 			assertThat(response.getItems().get(0).getKeywords()).contains("드럼");
@@ -153,7 +157,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			PlaceSearchResponse firstPage = searchService.searchWithCursor(request);
+			PlaceSearchResponse firstPage = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(firstPage.getItems()).hasSize(5);
@@ -167,7 +171,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			);
 			nextRequest.setSortBy(PlaceSearchRequest.SortBy.RATING);
 			nextRequest.setSortDirection(PlaceSearchRequest.SortDirection.DESC);
-			PlaceSearchResponse secondPage = searchService.searchWithCursor(nextRequest);
+			PlaceSearchResponse secondPage = searchPlacesUseCase.execute(nextRequest);
 			
 			// Then
 			assertThat(secondPage.getItems()).hasSize(5);
@@ -181,7 +185,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceRequestFactory.createKeywordSearchRequest("존재하지않음");
 			
 			// When
-			PlaceSearchResponse response = searchService.searchWithCursor(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems()).isEmpty();
@@ -195,18 +199,24 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 	class LocationSearchTests {
 		
 		@Test
-		@DisplayName("위치 정보 없이 위치 검색 시 예외가 발생한다")
-		void throwsExceptionWhenLocationMissing() {
+		@DisplayName("위치 정보 없이 검색하면 일반 검색으로 처리된다")
+		void searchWithoutLocationUsesGeneralSearch() {
 			// Given
+			PlaceInfo place = PlaceTestFactory.createPlaceInfo();
+			placeInfoRepository.save(place);
+			entityManager.flush();
+			entityManager.clear();
+
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.latitude(null)
 					.longitude(null)
 					.build();
-			
-			// When & Then
-			assertThatThrownBy(() -> searchService.searchByLocation(request))
-					.isInstanceOf(IllegalArgumentException.class)
-					.hasMessageContaining("위치 정보");
+
+			// When
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
+
+			// Then - 위치 정보 없이도 일반 검색으로 정상 처리됨
+			assertThat(response).isNotNull();
 		}
 		
 		@Test
@@ -220,7 +230,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When & Then
-			assertThatThrownBy(() -> searchService.searchByLocation(request))
+			assertThatThrownBy(() -> searchPlacesUseCase.execute(request))
 					.isInstanceOf(IllegalArgumentException.class)
 					.hasMessageContaining("위도");
 		}
@@ -236,7 +246,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When & Then
-			assertThatThrownBy(() -> searchService.searchByLocation(request))
+			assertThatThrownBy(() -> searchPlacesUseCase.execute(request))
 					.isInstanceOf(IllegalArgumentException.class)
 					.hasMessageContaining("경도");
 		}
@@ -253,14 +263,14 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.keywordIds(List.of())
 					.build();
-			
+
 			// When
-			PlaceSearchResponse response = searchService.searchByKeywords(request);
-			
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
+
 			// Then
 			assertThat(response.getItems()).isEmpty();
 		}
-		
+
 		@Test
 		@DisplayName("키워드가 NULL이면 빈 응답을 반환한다")
 		void returnsEmptyWhenKeywordIdsNull() {
@@ -268,10 +278,10 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.keywordIds(null)
 					.build();
-			
+
 			// When
-			PlaceSearchResponse response = searchService.searchByKeywords(request);
-			
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
+
 			// Then
 			assertThat(response.getItems()).isEmpty();
 		}
@@ -295,13 +305,13 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.searchByRegion(
-					"서울특별시",
-					"강남구",
-					"역삼동",
-					null,
-					10
-			);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.province("서울특별시")
+					.city("강남구")
+					.district("역삼동")
+					.size(10)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response).isNotNull();
@@ -319,13 +329,12 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.searchByRegion(
-					"서울특별시",
-					"강남구",
-					null,
-					null,
-					null  // size를 null로 전달
-			);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.province("서울특별시")
+					.city("강남구")
+					.size(20)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems().size()).isLessThanOrEqualTo(20);
@@ -349,7 +358,12 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.getPopularPlaces(10);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.sortBy(PlaceSearchRequest.SortBy.RATING)
+					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+					.size(10)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems()).hasSize(3);
@@ -371,7 +385,12 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.getPopularPlaces(null);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.sortBy(PlaceSearchRequest.SortBy.RATING)
+					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+					.size(10)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems().size()).isLessThanOrEqualTo(10);
@@ -393,7 +412,12 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.getRecentPlaces(10);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
+					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+					.size(10)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems()).hasSize(5);
@@ -410,7 +434,12 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			// When
-			PlaceSearchResponse response = searchService.getRecentPlaces(null);
+			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
+					.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
+					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
+					.size(10)
+					.build();
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems().size()).isLessThanOrEqualTo(10);
@@ -434,9 +463,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.size(150) // 100 초과
 					.build();
-			
+
 			// When
-			PlaceSearchResponse response = searchService.search(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(request.getSize()).isEqualTo(100); // 자동 조정됨
@@ -454,7 +483,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When & Then
-			assertThatCode(() -> searchService.search(validRequest))
+			assertThatCode(() -> searchPlacesUseCase.execute(validRequest))
 					.doesNotThrowAnyException();
 		}
 	}
@@ -485,9 +514,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			entityManager.clear();
 			
 			PlaceSearchRequest request = PlaceRequestFactory.createCategorySearchRequest("연습실");
-			
+
 			// When
-			Long count = searchService.countSearchResults(request);
+			Long count = searchRepository.countSearchResults(request);
 			
 			// Then
 			assertThat(count).isEqualTo(25);
@@ -500,8 +529,8 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 			PlaceSearchRequest request = PlaceRequestFactory.createKeywordSearchRequest("존재하지않음");
 			
 			// When
-			Long count = searchService.countSearchResults(request);
-			
+			Long count = searchRepository.countSearchResults(request);
+
 			// Then
 			assertThat(count).isZero();
 		}
@@ -540,9 +569,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 					"서울특별시",
 					"강남구"
 			);
-			
+
 			// When
-			PlaceSearchResponse response = searchService.search(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getItems()).hasSize(1);
@@ -563,7 +592,7 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			PlaceSearchResponse response = searchService.searchWithCursor(invalidRequest);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(invalidRequest);
 			
 			// Then
 			// 예외를 던지지 않고 빈 응답 반환
@@ -579,8 +608,8 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			Long count = searchService.countSearchResults(invalidRequest);
-			
+			Long count = searchRepository.countSearchResults(invalidRequest);
+
 			// Then
 			assertThat(count).isEqualTo(0L);
 		}
@@ -602,9 +631,9 @@ class PlaceAdvancedSearchServiceTest extends BaseIntegrationTest {
 					.sortBy(PlaceSearchRequest.SortBy.RATING)
 					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
 					.build();
-			
+
 			// When
-			PlaceSearchResponse response = searchService.search(request);
+			PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 			
 			// Then
 			assertThat(response.getMetadata()).isNotNull();

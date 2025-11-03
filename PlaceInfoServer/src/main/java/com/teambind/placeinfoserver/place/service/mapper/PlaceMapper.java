@@ -26,9 +26,9 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-		
+
 		return PlaceInfoResponse.builder()
-				.id(entity.getId())
+				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.userId(entity.getUserId())
 				.placeName(entity.getPlaceName())
 				.description(entity.getDescription())
@@ -59,12 +59,12 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-		
+
 		String thumbnailUrl = null;
 		if (!entity.getImages().isEmpty()) {
 			thumbnailUrl = entity.getImages().get(0).getImageUrl();
 		}
-		
+
 		String shortAddress = null;
 		if (entity.getLocation() != null && entity.getLocation().getAddress() != null) {
 			shortAddress = entity.getLocation().getAddress().getShortAddress();
@@ -76,7 +76,7 @@ public class PlaceMapper {
 		}
 		
 		return PlaceInfoSummaryResponse.builder()
-				.id(entity.getId())
+				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.placeName(entity.getPlaceName())
 				.category(entity.getCategory())
 				.placeType(entity.getPlaceType())
@@ -178,13 +178,13 @@ public class PlaceMapper {
 	/**
 	 * PlaceRegisterRequest -> PlaceInfo (신규 등록)
 	 */
-	public PlaceInfo toEntity(PlaceRegisterRequest request, String generatedId) {
+	public PlaceInfo toEntity(PlaceRegisterRequest request, Long generatedId) {
 		if (request == null) {
 			return null;
 		}
 		
 		PlaceInfo placeInfo = PlaceInfo.builder()
-				.id(generatedId)
+				.id(generatedId)  // Long 타입 ID (내부 사용)
 				.userId(request.getPlaceOwnerId())
 				.placeName(request.getPlaceName())
 				.description(request.getDescription())

@@ -143,9 +143,9 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 			results = results.subList(0, request.getSize());
 		}
 		
-		// ID 추출
-		List<String> placeIds = results.stream()
-				.map(row -> (String) row[0])
+		// ID 추출 (Native Query returns Long, but we need it for QueryDSL)
+		List<Long> placeIds = results.stream()
+				.map(row -> ((Number) row[0]).longValue())
 				.collect(Collectors.toList());
 		
 		// QueryDSL로 엔티티 조회 (거리 순서 유지)
@@ -320,27 +320,30 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	private void applyCursorCondition(JPAQuery<PlaceInfo> query, PlaceSearchCursor cursor, PlaceSearchRequest request) {
 		BooleanExpression cursorCondition = null;
 		
+		// Cursor의 lastId는 String이므로 Long으로 변환
+		Long lastIdAsLong = Long.parseLong(cursor.getLastId());
+
 		switch (request.getSortBy()) {
 			case RATING -> {
 				if (request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC) {
 					cursorCondition = placeInfo.ratingAverage.lt(cursor.getLastSortValue())
 							.or(placeInfo.ratingAverage.eq(cursor.getLastSortValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				} else {
 					cursorCondition = placeInfo.ratingAverage.gt(cursor.getLastSortValue())
 							.or(placeInfo.ratingAverage.eq(cursor.getLastSortValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				}
 			}
 			case REVIEW_COUNT -> {
 				if (request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC) {
 					cursorCondition = placeInfo.reviewCount.lt(cursor.getLastSortValue().intValue())
 							.or(placeInfo.reviewCount.eq(cursor.getLastSortValue().intValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				} else {
 					cursorCondition = placeInfo.reviewCount.gt(cursor.getLastSortValue().intValue())
 							.or(placeInfo.reviewCount.eq(cursor.getLastSortValue().intValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				}
 			}
 			case CREATED_AT -> {
@@ -352,27 +355,27 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 				if (request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC) {
 					cursorCondition = placeInfo.createdAt.before(lastCreatedAt)
 							.or(placeInfo.createdAt.eq(lastCreatedAt)
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				} else {
 					cursorCondition = placeInfo.createdAt.after(lastCreatedAt)
 							.or(placeInfo.createdAt.eq(lastCreatedAt)
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				}
 			}
 			case PLACE_NAME -> {
 				if (request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC) {
 					cursorCondition = placeInfo.placeName.lt(cursor.getSecondarySortValue())
 							.or(placeInfo.placeName.eq(cursor.getSecondarySortValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				} else {
 					cursorCondition = placeInfo.placeName.gt(cursor.getSecondarySortValue())
 							.or(placeInfo.placeName.eq(cursor.getSecondarySortValue())
-									.and(placeInfo.id.gt(cursor.getLastId())));
+									.and(placeInfo.id.gt(lastIdAsLong)));
 				}
 			}
-			default -> cursorCondition = placeInfo.id.gt(cursor.getLastId());
+			default -> cursorCondition = placeInfo.id.gt(lastIdAsLong);
 		}
-		
+
 		if (cursorCondition != null) {
 			query.where(cursorCondition);
 		}
@@ -432,7 +435,7 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 		return entities.stream()
 				.map(entity -> {
 					PlaceSearchResponse.PlaceSearchItem.PlaceSearchItemBuilder builder = PlaceSearchResponse.PlaceSearchItem.builder()
-							.id(entity.getId())
+							.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 							.placeName(entity.getPlaceName())
 							.description(entity.getDescription())
 							.category(entity.getCategory())
@@ -483,23 +486,26 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	 * 커서 생성
 	 */
 	private PlaceSearchCursor createCursor(PlaceInfo lastItem, PlaceSearchRequest request) {
+		// Long ID를 String으로 변환 (커서는 API 통신용)
+		String lastIdAsString = String.valueOf(lastItem.getId());
+
 		return switch (request.getSortBy()) {
 			case RATING -> PlaceSearchCursor.forRating(
-					lastItem.getId(),
+					lastIdAsString,
 					lastItem.getRatingAverage(),
 					lastItem.getPlaceName(),
 					null,
 					true
 			);
 			case REVIEW_COUNT -> PlaceSearchCursor.forReviewCount(
-					lastItem.getId(),
+					lastIdAsString,
 					lastItem.getReviewCount(),
 					lastItem.getPlaceName(),
 					null,
 					true
 			);
 			case CREATED_AT -> PlaceSearchCursor.forCreatedAt(
-					lastItem.getId(),
+					lastIdAsString,
 					lastItem.getCreatedAt().toEpochSecond(
 							java.time.ZoneId.systemDefault().getRules().getOffset(java.time.Instant.now())
 					),
@@ -507,7 +513,7 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 					true
 			);
 			default -> PlaceSearchCursor.builder()
-					.lastId(lastItem.getId())
+					.lastId(lastIdAsString)
 					.hasNext(true)
 					.build();
 		};

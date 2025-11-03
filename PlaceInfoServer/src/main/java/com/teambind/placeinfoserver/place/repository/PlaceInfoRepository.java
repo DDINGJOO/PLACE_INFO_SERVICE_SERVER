@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * 업체 정보 Repository (수정된 버전)
- * 엔티티 구조에 맞게 수정됨
+ * 업체 정보 Repository
+ * 엔티티 ID 타입: Long (내부 사용)
+ * API 응답 시 String으로 변환하여 전달 (JavaScript 호환성)
  */
 @Repository
-public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, String> {
+public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, Long> {
 
 }

@@ -16,10 +16,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PlaceRegisterService {
-	
+
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PrimaryKeyGenerator pkeyGenerator;
 	private final PlaceMapper placeMapper;
+	
+	/**
+	 * String ID를 Long으로 안전하게 변환
+	 *
+	 * @param placeId String 형태의 업체 ID
+	 * @return Long 형태의 업체 ID
+	 * @throws CustomException ID 형식이 잘못된 경우
+	 */
+	private Long parseId(String placeId) {
+		try {
+			return Long.parseLong(placeId);
+		} catch (NumberFormatException e) {
+			throw new CustomException(ErrorCode.INVALID_FORMAT);
+		}
+	}
 	
 	/**
 	 * 업체 등록
@@ -52,7 +67,7 @@ public class PlaceRegisterService {
 	@Transactional
 	public PlaceInfoResponse updatePlace(String placeId, PlaceUpdateRequest request) {
 		// 업체 조회 (String → Long 변환)
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
 		// 업데이트 (Mapper의 updateEntity 사용)
@@ -72,7 +87,7 @@ public class PlaceRegisterService {
 	 */
 	@Transactional
 	public void deletePlace(String placeId, String deletedBy) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
 		placeInfo.softDelete(deletedBy);
@@ -87,7 +102,7 @@ public class PlaceRegisterService {
 	 */
 	@Transactional
 	public String activatePlace(String placeId) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
 		placeInfo.activate();
@@ -102,7 +117,7 @@ public class PlaceRegisterService {
 	 */
 	@Transactional
 	public String deactivatePlace(String placeId) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.deactivate();
@@ -117,7 +132,7 @@ public class PlaceRegisterService {
 	 */
 	@Transactional
 	public String approvePlace(String placeId) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.approve();
@@ -132,7 +147,7 @@ public class PlaceRegisterService {
 	 */
 	@Transactional
 	public String rejectPlace(String placeId) {
-		PlaceInfo placeInfo = placeInfoRepository.findById(Long.parseLong(placeId))
+		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 		
 		placeInfo.reject();

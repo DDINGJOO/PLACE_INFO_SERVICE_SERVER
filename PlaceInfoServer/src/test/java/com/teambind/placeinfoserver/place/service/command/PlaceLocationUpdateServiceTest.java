@@ -79,7 +79,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -100,7 +100,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -146,7 +146,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -164,21 +164,21 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.latitude(37.5000)
 					.longitude(127.0000)
 					.build();
-			locationUpdateService.updateLocation(testPlace.getId(), request1);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request1);
 			
 			// 두 번째 업데이트
 			PlaceLocationRequest request2 = PlaceLocationRequest.builder()
 					.latitude(37.6000)
 					.longitude(127.1000)
 					.build();
-			locationUpdateService.updateLocation(testPlace.getId(), request2);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request2);
 			
 			// 세 번째 업데이트
 			PlaceLocationRequest request3 = PlaceLocationRequest.builder()
 					.latitude(37.7000)
 					.longitude(127.2000)
 					.build();
-			locationUpdateService.updateLocation(testPlace.getId(), request3);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request3);
 			
 			// Then
 			PlaceInfo finalPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -201,7 +201,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -219,7 +219,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -238,7 +238,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			locationUpdateService.updateLocation(testPlace.getId(), request);
+			locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -261,7 +261,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 			);
 			
 			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+			String resultId = locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			assertThat(resultId).isEqualTo(testPlace.getId());
@@ -286,7 +286,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+			String resultId = locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -317,7 +317,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+			String resultId = locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
@@ -337,7 +337,7 @@ class PlaceLocationUpdateServiceTest extends BaseIntegrationTest {
 					.build();
 			
 			// When
-			String resultId = locationUpdateService.updateLocation(testPlace.getId(), request);
+			String resultId = locationUpdateService.updateLocation(String.valueOf(testPlace.getId()), request);
 			
 			// Then
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();

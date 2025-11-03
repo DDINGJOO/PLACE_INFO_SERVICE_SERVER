@@ -64,7 +64,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			images.add(createImageEvent("https://example.com/image3.jpg"));
 			
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(images)
 					.build();
 			
@@ -99,7 +99,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			newImages.add(createImageEvent("https://example.com/new3.jpg"));
 			
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(newImages)
 					.build();
 			
@@ -125,7 +125,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			
 			// 빈 리스트로 업데이트
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(new ArrayList<>())
 					.build();
 			
@@ -149,7 +149,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			images.add(createImageEvent("https://example.com/fourth.jpg"));
 			
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(images)
 					.build();
 			
@@ -191,7 +191,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 		void updateImage_NullImageList_Success() {
 			// Given
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(null)
 					.build();
 			
@@ -218,7 +218,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			images.add(createImageEvent("https://example.com/img1.jpg"));
 			
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(images)
 					.build();
 			
@@ -238,14 +238,14 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			// Given & When
 			// 첫 번째 업데이트
 			ImagesChangeEventWrapper event1 = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(List.of(createImageEvent("https://example.com/v1.jpg")))
 					.build();
 			imageUpdateService.updateImage(event1);
 			
 			// 두 번째 업데이트
 			ImagesChangeEventWrapper event2 = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(List.of(
 							createImageEvent("https://example.com/v2-1.jpg"),
 							createImageEvent("https://example.com/v2-2.jpg")
@@ -255,7 +255,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			
 			// 세 번째 업데이트
 			ImagesChangeEventWrapper event3 = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(List.of(createImageEvent("https://example.com/v3.jpg")))
 					.build();
 			imageUpdateService.updateImage(event3);
@@ -282,7 +282,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			}
 			
 			ImagesChangeEventWrapper event = ImagesChangeEventWrapper.builder()
-					.referenceId(testPlace.getId())
+					.referenceId(String.valueOf(testPlace.getId()))
 					.images(images)
 					.build();
 			

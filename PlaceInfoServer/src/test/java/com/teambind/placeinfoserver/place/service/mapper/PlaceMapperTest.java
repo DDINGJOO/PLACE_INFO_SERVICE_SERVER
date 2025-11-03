@@ -188,7 +188,7 @@ class PlaceMapperTest {
 		void toEntity_Success() {
 			// Given
 			PlaceRegisterRequest request = PlaceRequestFactory.createPlaceRegisterRequest();
-			String generatedId = "place_test_123";
+			Long generatedId = 123456789L;  // Long 타입 ID
 			
 			// When
 			PlaceInfo placeInfo = mapper.toEntity(request, generatedId);

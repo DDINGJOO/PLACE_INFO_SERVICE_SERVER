@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teambind.placeinfoserver.place.common.util.AddressParser;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceContactFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceLocationFactory;
+import com.teambind.placeinfoserver.place.domain.factory.PlaceParkingFactory;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import com.teambind.placeinfoserver.place.dto.request.*;
 import com.teambind.placeinfoserver.place.dto.response.*;
@@ -21,14 +24,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceMapperTest {
-	
+
 	private PlaceMapper mapper;
 	private AddressParser addressParser;
-	
+	private PlaceContactFactory contactFactory;
+	private PlaceLocationFactory locationFactory;
+	private PlaceParkingFactory parkingFactory;
+
 	@BeforeEach
 	void setUp() {
 		addressParser = new AddressParser(new ObjectMapper());
-		mapper = new PlaceMapper(addressParser);
+		contactFactory = new PlaceContactFactory();
+		locationFactory = new PlaceLocationFactory();
+		parkingFactory = new PlaceParkingFactory();
+		mapper = new PlaceMapper(addressParser, contactFactory, locationFactory, parkingFactory);
 		PlaceTestFactory.resetSequence();
 	}
 	

@@ -11,14 +11,14 @@ import com.teambind.placeinfoserver.place.dto.cursor.PlaceSearchCursor;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
 import com.teambind.placeinfoserver.place.repository.PlaceAdvancedSearchRepository;
+import com.teambind.placeinfoserver.place.repository.RoomRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,10 +28,11 @@ import java.util.stream.Collectors;
 @Repository
 @RequiredArgsConstructor
 public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRepository {
-	
+
 	private final JPAQueryFactory queryFactory;
 	private final EntityManager entityManager;
-	
+	private final RoomRepository roomRepository;
+
 	// Q타입 엔티티
 	private final QPlaceInfo placeInfo = QPlaceInfo.placeInfo;
 	private final QPlaceLocation placeLocation = QPlaceLocation.placeLocation;
@@ -432,6 +433,24 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	 * 엔티티를 DTO로 변환
 	 */
 	private List<PlaceSearchResponse.PlaceSearchItem> convertToItems(List<PlaceInfo> entities, PlaceSearchRequest request) {
+		if (entities.isEmpty()) {
+			return List.of();
+		}
+
+		// N+1 문제 방지: 모든 place ID로 Room 정보 한 번에 조회
+		List<Long> placeIds = entities.stream()
+				.map(PlaceInfo::getId)
+				.collect(Collectors.toList());
+
+		// placeId -> roomIds 매핑 생성
+		Map<Long, List<Long>> placeRoomMap = new HashMap<>();
+		List<Object[]> roomResults = roomRepository.findRoomIdsByPlaceIds(placeIds);
+		for (Object[] row : roomResults) {
+			Long placeId = ((Number) row[0]).longValue();
+			Long roomId = ((Number) row[1]).longValue();
+			placeRoomMap.computeIfAbsent(placeId, k -> new ArrayList<>()).add(roomId);
+		}
+
 		return entities.stream()
 				.map(entity -> {
 					PlaceSearchResponse.PlaceSearchItem.PlaceSearchItemBuilder builder = PlaceSearchResponse.PlaceSearchItem.builder()
@@ -444,31 +463,31 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 							.reviewCount(entity.getReviewCount())
 							.isActive(entity.getIsActive())
 							.approvalStatus(String.valueOf(entity.getApprovalStatus()));
-					
+
 					// 위치 정보
 					if (entity.getLocation() != null) {
 						builder.fullAddress(entity.getLocation().getAddress().getFullAddress())
 								.latitude(entity.getLocation().getLatitude())
 								.longitude(entity.getLocation().getLongitude());
 					}
-					
+
 					// 주차 정보
 					if (entity.getParking() != null) {
 						builder.parkingAvailable(entity.getParking().getAvailable())
 								.parkingType(entity.getParking().getParkingType() != null ?
 										entity.getParking().getParkingType().name() : null);
 					}
-					
+
 					// 연락처
 					if (entity.getContact() != null) {
 						builder.contact(entity.getContact().getContact());
 					}
-					
+
 					// 첫 번째 이미지를 썸네일로
 					if (entity.getImages() != null && !entity.getImages().isEmpty()) {
 						builder.thumbnailUrl(entity.getImages().get(0).getImageUrl());
 					}
-					
+
 					// 키워드
 					if (entity.getKeywords() != null) {
 						List<String> keywordNames = entity.getKeywords().stream()
@@ -476,7 +495,12 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 								.collect(Collectors.toList());
 						builder.keywords(keywordNames);
 					}
-					
+
+					// Room 정보 추가
+					List<Long> roomIds = placeRoomMap.getOrDefault(entity.getId(), List.of());
+					builder.roomCount(roomIds.size());
+					builder.roomIds(roomIds);
+
 					return builder.build();
 				})
 				.collect(Collectors.toList());

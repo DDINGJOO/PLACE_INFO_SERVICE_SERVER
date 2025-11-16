@@ -33,7 +33,11 @@ public class PlaceInfoResponse {
 	private ApprovalStatus approvalStatus;
 	private Double ratingAverage;
 	private Integer reviewCount;
-	
+
+	// Room 정보
+	private Integer roomCount;
+	private List<Long> roomIds;
+
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 }

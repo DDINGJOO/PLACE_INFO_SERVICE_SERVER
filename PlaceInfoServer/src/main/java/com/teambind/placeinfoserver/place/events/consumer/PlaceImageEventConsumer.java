@@ -27,5 +27,4 @@ public class PlaceImageEventConsumer {
 			// 필요하면 DLQ 전송이나 재시도 로직 추가
 		}
 	}
-	
 }

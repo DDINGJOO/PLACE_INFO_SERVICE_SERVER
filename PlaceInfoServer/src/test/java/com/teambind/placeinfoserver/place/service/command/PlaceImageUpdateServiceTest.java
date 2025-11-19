@@ -1,6 +1,6 @@
 package com.teambind.placeinfoserver.place.service.command;
 
-import com.teambind.placeinfoserver.place.common.exception.CustomException;
+import com.teambind.placeinfoserver.place.common.exception.application.InvalidRequestException;
 import com.teambind.placeinfoserver.place.config.BaseIntegrationTest;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.events.event.ImagesChangeEventWrapper;
@@ -72,7 +72,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			String resultId = imageUpdateService.updateImage(event);
 			
 			// Then
-			assertThat(resultId).isEqualTo(testPlace.getId());
+			assertThat(resultId).isEqualTo(String.valueOf(testPlace.getId()));
 			
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getImages()).hasSize(3);
@@ -182,7 +182,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			
 			// When & Then
 			assertThatThrownBy(() -> imageUpdateService.updateImage(event))
-					.isInstanceOf(CustomException.class);
+					.isInstanceOf(InvalidRequestException.class);
 		}
 		
 		@Test
@@ -199,7 +199,7 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 			String resultId = imageUpdateService.updateImage(event);
 			
 			// Then
-			assertThat(resultId).isEqualTo(testPlace.getId());
+			assertThat(resultId).isEqualTo(String.valueOf(testPlace.getId()));
 			PlaceInfo updatedPlace = placeInfoRepository.findById(testPlace.getId()).orElseThrow();
 			assertThat(updatedPlace.getImages()).isEmpty();
 		}

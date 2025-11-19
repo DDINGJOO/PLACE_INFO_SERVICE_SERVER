@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  place-info-server:
+    container_name: place-info-server
+    image: ddingsh9/placeinfoserver:1.0.0
+    networks:
+      - infra-network
+    environment:
+      # Spring Profile
+      - SPRING_PROFILES_ACTIVE=prod
+
+      # Server Port
+      - SERVER_PORT=8080
+
+      # Kafka Configuration (infra-network 내부 호스트명 사용)
+      - KAFKA_BROKER1=kafka1:9091
+      - KAFKA_BROKER2=kafka2:9092
+      - KAFKA_BROKER3=kafka3:9093
+
+      # PostgreSQL Configuration (infra-network 내부 호스트명 사용)
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=place
+      - DB_USERNAME=placeuser
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Redis Configuration (infra-network 내부 호스트명 사용)
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:}
+
+      # Logging
+      - LOG_LEVEL=INFO
+      - SQL_LOG_LEVEL=WARN
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  nginx:
+    container_name: place-info-nginx
+    image: nginx:alpine
+    ports:
+      - "9412:80"
+    networks:
+      - infra-network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - place-info-server
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  infra-network:
+    external: true
+    name: infra-network

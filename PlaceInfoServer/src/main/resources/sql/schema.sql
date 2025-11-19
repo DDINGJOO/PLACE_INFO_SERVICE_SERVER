@@ -81,6 +81,17 @@ CREATE TABLE keywords
     CONSTRAINT uk_keywords_name_type UNIQUE (name, type)
 );
 
+-- 3.3 Room (Separate Aggregate Root)
+CREATE TABLE room
+(
+    id         BIGSERIAL PRIMARY KEY,
+    room_id    BIGINT    NOT NULL UNIQUE,
+    place_id   BIGINT    NOT NULL,
+    is_active  BOOLEAN   NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =============================================
 -- 4. Related Entity Tables
 -- =============================================
@@ -237,6 +248,11 @@ CREATE INDEX idx_keywords_type ON keywords (type);
 CREATE INDEX idx_keywords_is_active ON keywords (is_active);
 CREATE INDEX idx_keywords_display_order ON keywords (display_order);
 
+-- Room indexes
+CREATE INDEX idx_room_room_id ON room (room_id);
+CREATE INDEX idx_room_place_id ON room (place_id);
+CREATE INDEX idx_room_is_active ON room (is_active);
+
 -- Element Collection indexes
 CREATE INDEX idx_place_websites_contact_id ON place_websites (place_contact_id);
 CREATE INDEX idx_place_social_links_contact_id ON place_social_links (place_contact_id);
@@ -283,6 +299,12 @@ CREATE TRIGGER update_place_parkings_updated_at
     ON place_parkings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_room_updated_at
+    BEFORE UPDATE
+    ON room
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
 -- =============================================
 -- 9. Functions for Business Logic

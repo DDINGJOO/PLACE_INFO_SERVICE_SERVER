@@ -215,6 +215,7 @@ public class PlaceInfo extends BaseEntity {
 	
 	/**
 	 * 이미지 추가 (최대 10장 제한)
+	 * 자동으로 sequence 부여
 	 */
 	public void addImage(PlaceImage image) {
 		if (this.images.size() >= 10) {
@@ -222,6 +223,46 @@ public class PlaceInfo extends BaseEntity {
 		}
 		this.images.add(image);
 		image.setPlaceInfo(this);
+	}
+
+	/**
+	 * sequence를 지정하여 이미지 추가
+	 *
+	 * @param imageId  이미지 ID
+	 * @param imageUrl 이미지 URL
+	 * @param sequence 이미지 순서
+	 */
+	public void addImageWithSequence(String imageId, String imageUrl, Long sequence) {
+		if (imageId == null || imageUrl == null) {
+			throw new IllegalArgumentException("Cannot add image with null imageId or imageUrl");
+		}
+
+		if (sequence == null || sequence < 1) {
+			// sequence가 유효하지 않으면 자동 sequence 사용
+			long autoSequence = this.images.size() + 1;
+			PlaceImage placeImage = new PlaceImage(imageId, this, imageUrl, autoSequence);
+			addImage(placeImage);
+			return;
+		}
+
+		if (this.images.size() >= 10) {
+			throw new IllegalStateException("이미지는 최대 10장까지만 등록 가능합니다.");
+		}
+
+		PlaceImage placeImage = new PlaceImage(imageId, this, imageUrl, sequence);
+		this.images.add(placeImage);
+		placeImage.setPlaceInfo(this);
+	}
+
+	/**
+	 * imageId와 imageUrl 쌍으로 이미지 추가 (자동 sequence 부여)
+	 *
+	 * @param imageId  이미지 ID
+	 * @param imageUrl 이미지 URL
+	 */
+	public void addImage(String imageId, String imageUrl) {
+		long sequence = this.images.size() + 1;
+		addImageWithSequence(imageId, imageUrl, sequence);
 	}
 	
 	/**

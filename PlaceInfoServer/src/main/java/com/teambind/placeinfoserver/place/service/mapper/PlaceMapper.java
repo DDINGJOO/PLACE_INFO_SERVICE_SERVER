@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,6 +41,17 @@ public class PlaceMapper {
 			return null;
 		}
 
+		// 구조화된 이미지 정보 생성 (null 필터링 포함)
+		List<ImageInfoResponse> images = entity.getImages().stream()
+				.map(ImageInfoResponse::fromEntity)
+				.filter(Objects::nonNull)  // null 값 필터링
+				.collect(Collectors.toList());
+
+		// 하위 호환성을 위한 imageUrls (구조화된 이미지에서 URL만 추출)
+		List<String> imageUrls = images.stream()
+				.map(ImageInfoResponse::getImageUrl)
+				.collect(Collectors.toList());
+
 		return PlaceInfoResponse.builder()
 				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.userId(entity.getUserId())
@@ -50,9 +62,8 @@ public class PlaceMapper {
 				.contact(toContactResponse(entity.getContact()))
 				.location(toLocationResponse(entity.getLocation()))
 				.parking(toParkingResponse(entity.getParking()))
-				.imageUrls(entity.getImages().stream()
-						.map(PlaceImage::getImageUrl)
-						.collect(Collectors.toList()))
+				.images(images)  // 구조화된 이미지 정보
+				.imageUrls(imageUrls)  // 하위 호환성
 				.keywords(entity.getKeywords().stream()
 						.map(this::toKeywordResponse)
 						.collect(Collectors.toList()))

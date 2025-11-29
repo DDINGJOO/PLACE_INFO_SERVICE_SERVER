@@ -45,8 +45,12 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 	}
 	
 	// 헬퍼 메서드
+	private static int imageCounter = 0;
+
 	private SequentialImageChangeEvent createImageEvent(String imageUrl) {
-		return new SequentialImageChangeEvent(null, imageUrl, null, null);
+		// imageId를 자동 생성하여 imageId/imageUrl 쌍을 만듦
+		String imageId = "img_test_" + (++imageCounter);
+		return new SequentialImageChangeEvent(imageId, imageUrl, null, null);
 	}
 	
 	@Nested

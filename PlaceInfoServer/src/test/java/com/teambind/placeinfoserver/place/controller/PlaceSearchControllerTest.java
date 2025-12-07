@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teambind.placeinfoserver.place.config.BaseIntegrationTest;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.dto.request.LocationSearchRequest;
+import com.teambind.placeinfoserver.place.dto.request.PlaceBatchDetailRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.fixture.PlaceTestFactory;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
@@ -330,7 +331,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 	@Nested
 	@DisplayName("복합 조건 검색 테스트")
 	class ComplexSearchTest {
-		
+
 		@Test
 		@Order(17)
 		@DisplayName("복합 조건 검색 - 키워드 + 지역")
@@ -345,7 +346,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-		
+
 		@Test
 		@Order(18)
 		@DisplayName("복합 조건 검색 - 카테고리 + 주차 가능")
@@ -358,6 +359,120 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andDo(print())
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
+		}
+	}
+
+	@Nested
+	@DisplayName("배치 상세 조회 API 테스트")
+	class BatchDetailSearchTest {
+
+		@Test
+		@Order(19)
+		@DisplayName("배치 상세 조회 - 모든 ID 존재")
+		void batchDetailSearch_AllFound_Success() throws Exception {
+			// Given
+			List<Long> placeIds = List.of(testPlace1.getId(), testPlace2.getId());
+			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
+					.placeIds(placeIds)
+					.build();
+
+			// When & Then
+			mockMvc.perform(post("/api/v1/places/search/batch/details")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request)))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.results").isArray())
+					.andExpect(jsonPath("$.results", hasSize(2)))
+					.andExpect(jsonPath("$.failed").doesNotExist()); // @JsonInclude로 빈 배열은 제외
+		}
+
+		@Test
+		@Order(20)
+		@DisplayName("배치 상세 조회 - 부분 실패")
+		void batchDetailSearch_PartialFailure_Success() throws Exception {
+			// Given
+			List<Long> placeIds = List.of(testPlace1.getId(), 999999L, testPlace2.getId(), 888888L);
+			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
+					.placeIds(placeIds)
+					.build();
+
+			// When & Then
+			mockMvc.perform(post("/api/v1/places/search/batch/details")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request)))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.results").isArray())
+					.andExpect(jsonPath("$.results", hasSize(2)))
+					.andExpect(jsonPath("$.failed").isArray())
+					.andExpect(jsonPath("$.failed", hasSize(2)))
+					.andExpect(jsonPath("$.failed", containsInAnyOrder(999999, 888888)));
+		}
+
+		@Test
+		@Order(21)
+		@DisplayName("배치 상세 조회 - 빈 목록으로 요청시 400 에러")
+		void batchDetailSearch_EmptyList_BadRequest() throws Exception {
+			// Given
+			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
+					.placeIds(List.of())
+					.build();
+
+			// When & Then
+			mockMvc.perform(post("/api/v1/places/search/batch/details")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request)))
+					.andDo(print())
+					.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@Order(22)
+		@DisplayName("배치 상세 조회 - 최대 개수 초과시 400 에러")
+		void batchDetailSearch_ExceedMaxSize_BadRequest() throws Exception {
+			// Given - 51개의 ID 생성 (최대 50개 제한)
+			List<Long> tooManyIds = java.util.stream.LongStream.rangeClosed(1, 51)
+					.boxed()
+					.collect(java.util.stream.Collectors.toList());
+
+			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
+					.placeIds(tooManyIds)
+					.build();
+
+			// When & Then
+			mockMvc.perform(post("/api/v1/places/search/batch/details")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request)))
+					.andDo(print())
+					.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@Order(23)
+		@DisplayName("배치 상세 조회 - 중복 ID 처리")
+		void batchDetailSearch_DuplicateIds_Success() throws Exception {
+			// Given
+			List<Long> duplicateIds = List.of(
+					testPlace1.getId(),
+					testPlace1.getId(),  // 중복
+					testPlace2.getId(),
+					testPlace2.getId()   // 중복
+			);
+
+			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
+					.placeIds(duplicateIds)
+					.build();
+
+			// When & Then
+			mockMvc.perform(post("/api/v1/places/search/batch/details")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request)))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.results").isArray())
+					.andExpect(jsonPath("$.results", hasSize(2)))  // 중복 제거되어 2개만
+					.andExpect(jsonPath("$.failed").doesNotExist());
 		}
 	}
 }

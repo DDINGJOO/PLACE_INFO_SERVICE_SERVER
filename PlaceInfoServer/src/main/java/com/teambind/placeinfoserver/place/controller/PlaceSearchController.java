@@ -1,10 +1,13 @@
 package com.teambind.placeinfoserver.place.controller;
 
 import com.teambind.placeinfoserver.place.dto.request.LocationSearchRequest;
+import com.teambind.placeinfoserver.place.dto.request.PlaceBatchDetailRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.dto.response.CountResponse;
+import com.teambind.placeinfoserver.place.dto.response.PlaceBatchDetailResponse;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
 import com.teambind.placeinfoserver.place.repository.PlaceAdvancedSearchRepository;
+import com.teambind.placeinfoserver.place.service.usecase.query.GetPlaceDetailsBatchUseCase;
 import com.teambind.placeinfoserver.place.service.usecase.query.SearchPlacesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,13 +35,14 @@ public class PlaceSearchController {
 
 	// Query UseCases
 	private final SearchPlacesUseCase searchPlacesUseCase;
+	private final GetPlaceDetailsBatchUseCase getPlaceDetailsBatchUseCase;
 	private final PlaceAdvancedSearchRepository searchRepository;
 	
 	/**
 	 * 통합 검색 API
 	 * GET 파라미터를 통한 유연한 검색 지원
 	 */
-	@GetMapping
+	@GetMapping(produces = "application/json;charset=UTF-8")
 	@Operation(summary = "공간 통합 검색", description = "다양한 조건으로 공간을 검색합니다")
 	@ApiResponse(responseCode = "200", description = "검색 성공")
 	public ResponseEntity<PlaceSearchResponse> search(
@@ -80,10 +84,26 @@ public class PlaceSearchController {
 				.size(size)
 				.build();
 		
-		log.info("검색 요청: keyword={}, location=({},{}), cursor={}",
-				keyword, latitude, longitude, cursor);
+		// URL 인코딩 확인을 위한 상세 로깅
+		log.info("====== 검색 요청 상세 정보 ======");
+		log.info("keyword=[{}], placeName=[{}]", keyword, placeName);
+
+		if (keyword != null && !keyword.isEmpty()) {
+			log.info("keyword 상세: 길이={}, UTF-8 bytes={}",
+				keyword.length(),
+				java.util.Arrays.toString(keyword.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+		}
+		if (placeName != null && !placeName.isEmpty()) {
+			log.info("placeName 상세: 길이={}, UTF-8 bytes={}",
+				placeName.length(),
+				java.util.Arrays.toString(placeName.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+		}
+		log.info("location=({},{}), cursor={}, size={}", latitude, longitude, cursor, size);
+		log.info("================================");
 
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
+
+		log.info("검색 결과: {} 건 조회됨", response.getCount());
 		return ResponseEntity.ok(response);
 	}
 	
@@ -203,5 +223,38 @@ public class PlaceSearchController {
 	) {
 		Long count = searchRepository.countSearchResults(request);
 		return ResponseEntity.ok(new CountResponse(count));
+	}
+
+	/**
+	 * 공간 배치 상세 조회 API
+	 *
+	 * 설계 결정:
+	 * - POST 메서드 사용: Request Body로 다수의 ID 전달
+	 * - 최대 50개 제한: 성능 최적화 및 메모리 관리
+	 * - 부분 성공 패턴: 일부 ID가 존재하지 않아도 정상 응답
+	 * - Gateway 친화적 구조: 단순한 results/failed 구조
+	 *
+	 * @param request 조회할 placeId 목록
+	 * @return 조회된 공간 정보와 실패한 ID 목록
+	 */
+	@PostMapping("/batch/details")
+	@Operation(
+		summary = "공간 배치 상세 조회",
+		description = "여러 공간의 상세 정보를 한 번에 조회합니다. 최대 50개까지 조회 가능하며, 존재하지 않는 ID는 failed 필드에 반환됩니다."
+	)
+	@ApiResponse(responseCode = "200", description = "조회 성공 (부분 실패 포함)")
+	@ApiResponse(responseCode = "400", description = "잘못된 요청 (빈 목록, 개수 초과 등)")
+	public ResponseEntity<PlaceBatchDetailResponse> getPlaceDetailsBatch(
+			@Valid @RequestBody PlaceBatchDetailRequest request
+	) {
+		log.info("배치 상세 조회 요청 - placeId 개수: {}", request.getPlaceIds().size());
+
+		PlaceBatchDetailResponse response = getPlaceDetailsBatchUseCase.execute(request);
+
+		log.info("배치 상세 조회 완료 - 성공: {}, 실패: {}",
+				response.getSuccessCount(),
+				response.getFailed() != null ? response.getFailed().size() : 0);
+
+		return ResponseEntity.ok(response);
 	}
 }

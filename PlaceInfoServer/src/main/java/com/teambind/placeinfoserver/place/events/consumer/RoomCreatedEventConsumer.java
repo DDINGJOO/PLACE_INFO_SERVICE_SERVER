@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class RoomCreatedEventConsumer {
-
+	
 	private final RoomCreateService roomCreateService;
 	private final JsonUtil jsonUtil;
-
+	
 	@KafkaListener(topics = "room-created", groupId = "place-consumer-group")
 	public void roomCreated(String message) {
 		try {

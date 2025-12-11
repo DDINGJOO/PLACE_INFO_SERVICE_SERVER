@@ -8,14 +8,14 @@ import com.teambind.placeinfoserver.place.dto.request.AddressRequest;
  * 각 주소 소스(카카오, 네이버, 수동)별로 구체적인 구현 제공
  */
 public interface AddressParsingStrategy {
-
+	
 	/**
 	 * 이 전략이 지원하는 주소 소스 반환
 	 *
 	 * @return 지원하는 주소 소스
 	 */
 	AddressSource supports();
-
+	
 	/**
 	 * 주소 데이터를 파싱하여 AddressRequest로 변환
 	 *

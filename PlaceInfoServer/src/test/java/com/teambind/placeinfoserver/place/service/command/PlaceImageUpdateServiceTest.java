@@ -27,12 +27,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 	
+	// 헬퍼 메서드
+	private static int imageCounter = 0;
 	@Autowired
 	private PlaceImageUpdateService imageUpdateService;
-	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-	
 	private PlaceInfo testPlace;
 	
 	@BeforeEach
@@ -44,9 +44,6 @@ class PlaceImageUpdateServiceTest extends BaseIntegrationTest {
 		testPlace = placeInfoRepository.save(testPlace);
 	}
 	
-	// 헬퍼 메서드
-	private static int imageCounter = 0;
-
 	private SequentialImageChangeEvent createImageEvent(String imageUrl) {
 		// imageId를 자동 생성하여 imageId/imageUrl 쌍을 만듦
 		String imageId = "img_test_" + (++imageCounter);

@@ -7,11 +7,11 @@ import com.teambind.placeinfoserver.place.common.exception.application.InvalidRe
  * UseCase 간 공통으로 사용되는 ID 파싱 로직
  */
 public final class IdParser {
-
+	
 	private IdParser() {
 		// 유틸리티 클래스이므로 인스턴스 생성 방지
 	}
-
+	
 	/**
 	 * String ID를 Long으로 안전하게 변환
 	 *

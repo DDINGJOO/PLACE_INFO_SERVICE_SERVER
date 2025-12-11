@@ -118,7 +118,7 @@ public class PlaceLocation extends BaseEntity {
 	public void setLocationGuide(String locationGuide) {
 		this.locationGuide = locationGuide;
 	}
-
+	
 	/**
 	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
 	 * PlaceInfo.setLocation()에서만 호출되어야 함

@@ -26,7 +26,7 @@ public class PlaceTestFactory {
 	 */
 	public static PlaceInfo createPlaceInfo() {
 		Long placeId = generatePlaceId();
-
+		
 		PlaceInfo placeInfo = PlaceInfo.builder()
 				.id(placeId)  // Long 타입 ID
 				.userId("user_" + sequenceNumber)
@@ -40,12 +40,12 @@ public class PlaceTestFactory {
 				.approvalStatus(ApprovalStatus.APPROVED)
 				.images(new ArrayList<>())
 				.build();
-
+		
 		// 연관 엔티티 설정
 		placeInfo.setLocation(createPlaceLocation(placeInfo));
 		placeInfo.setContact(createPlaceContact(placeInfo));
 		placeInfo.setParking(createPlaceParking(placeInfo));
-
+		
 		sequenceNumber++;
 		return placeInfo;
 	}
@@ -55,7 +55,7 @@ public class PlaceTestFactory {
 	 */
 	public static PlaceInfo createPlaceInfoWithLocation(String placeName, double latitude, double longitude) {
 		Long placeId = generatePlaceId();
-
+		
 		PlaceInfo placeInfo = PlaceInfo.builder()
 				.id(placeId)  // Long 타입 ID
 				.userId("user_" + sequenceNumber)
@@ -69,12 +69,12 @@ public class PlaceTestFactory {
 				.approvalStatus(ApprovalStatus.APPROVED)
 				.images(new ArrayList<>())
 				.build();
-
+		
 		// 특정 위치로 설정
 		placeInfo.setLocation(createPlaceLocationWithCoordinates(placeInfo, latitude, longitude));
 		placeInfo.setContact(createPlaceContact(placeInfo));
 		placeInfo.setParking(createPlaceParking(placeInfo));
-
+		
 		sequenceNumber++;
 		return placeInfo;
 	}
@@ -311,7 +311,7 @@ public class PlaceTestFactory {
 		
 		public PlaceInfo build() {
 			Long placeId = generatePlaceId();
-
+			
 			PlaceInfo placeInfo = PlaceInfo.builder()
 					.id(placeId)  // Long 타입 ID
 					.userId(userId)

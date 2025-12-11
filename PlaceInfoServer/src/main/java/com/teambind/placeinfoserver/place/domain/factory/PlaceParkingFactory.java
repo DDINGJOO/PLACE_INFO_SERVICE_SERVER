@@ -35,13 +35,13 @@ public class PlaceParkingFactory {
 		if (Boolean.FALSE.equals(available) && parkingType != null) {
 			throw new IllegalArgumentException("주차가 불가능한 경우 주차 유형을 지정할 수 없습니다.");
 		}
-
+		
 		// 주차 가능한데 유형이 없는 경우 기본값 설정
 		ParkingType finalParkingType = parkingType;
 		if (Boolean.TRUE.equals(available) && parkingType == null) {
 			finalParkingType = ParkingType.FREE;  // 기본값: 무료 주차
 		}
-
+		
 		return PlaceParking.builder()
 				.placeInfo(placeInfo)
 				.available(available != null ? available : false)  // 기본값: 불가능

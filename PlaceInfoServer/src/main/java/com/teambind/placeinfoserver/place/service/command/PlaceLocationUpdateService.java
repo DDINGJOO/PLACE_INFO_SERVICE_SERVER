@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceLocationUpdateService {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
 	
@@ -49,7 +49,7 @@ public class PlaceLocationUpdateService {
 	public String updateLocation(String placeId, PlaceLocationRequest req) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		// 기존 Location이 없으면 새로 생성, 있으면 업데이트
 		if (placeInfo.getLocation() == null) {
 			placeInfo.setLocation(placeMapper.toLocationEntity(req, placeInfo));
@@ -57,11 +57,11 @@ public class PlaceLocationUpdateService {
 			// 부분 업데이트: 요청에 포함된 필드만 업데이트
 			updateExistingLocation(placeInfo.getLocation(), req);
 		}
-
+		
 		// @Transactional이므로 자동으로 변경사항 반영 (더티 체킹)
 		return placeId;
 	}
-
+	
 	/**
 	 * 기존 Location 엔티티 부분 업데이트
 	 *
@@ -73,14 +73,14 @@ public class PlaceLocationUpdateService {
 		if (req.getLatitude() != null && req.getLongitude() != null) {
 			location.setLatLng(req.getLatitude(), req.getLongitude());
 		}
-
+		
 		// 주소 업데이트
 		if (req.getFrom() != null && req.getAddressData() != null) {
 			AddressRequest addressRequest = placeMapper.getAddressParser().parse(req.getFrom(), req.getAddressData());
 			Address address = placeMapper.toAddressEntity(addressRequest);
 			location.updateAddress(address);
 		}
-
+		
 		// 위치 안내 업데이트
 		if (req.getLocationGuide() != null) {
 			location.updateLocationGuide(req.getLocationGuide());

@@ -14,19 +14,19 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-
+	
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	private LocalDateTime timestamp;
-
+	
 	private int status;
 	private String code;
 	private String message;
 	private String path;
 	private String exceptionType;
-
+	
 	@Builder.Default
 	private List<FieldErrorDetail> fieldErrors = new ArrayList<>();
-
+	
 	public static ErrorResponse of(int status, String code, String message, String path) {
 		return ErrorResponse.builder()
 				.timestamp(LocalDateTime.now())
@@ -36,7 +36,7 @@ public class ErrorResponse {
 				.path(path)
 				.build();
 	}
-
+	
 	public static ErrorResponse of(PlaceException ex, String path) {
 		return ErrorResponse.builder()
 				.timestamp(LocalDateTime.now())
@@ -47,7 +47,7 @@ public class ErrorResponse {
 				.exceptionType(ex.getExceptionType())
 				.build();
 	}
-
+	
 	public static ErrorResponse ofValidation(int status, String code, String message, String path, List<FieldError> errors) {
 		List<FieldErrorDetail> fieldErrors = errors.stream()
 				.map(error -> new FieldErrorDetail(
@@ -56,7 +56,7 @@ public class ErrorResponse {
 						error.getDefaultMessage()
 				))
 				.toList();
-
+		
 		return ErrorResponse.builder()
 				.timestamp(LocalDateTime.now())
 				.status(status)
@@ -66,14 +66,14 @@ public class ErrorResponse {
 				.fieldErrors(fieldErrors)
 				.build();
 	}
-
+	
 	@Getter
 	@Builder
 	public static class FieldErrorDetail {
 		private String field;
 		private String rejectedValue;
 		private String message;
-
+		
 		public FieldErrorDetail(String field, String rejectedValue, String message) {
 			this.field = field;
 			this.rejectedValue = rejectedValue;

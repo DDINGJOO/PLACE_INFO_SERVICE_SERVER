@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ApprovePlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 업체 승인
 	 *
@@ -28,7 +28,7 @@ public class ApprovePlaceUseCase {
 	public String execute(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		placeInfo.approve();
 		return String.valueOf(placeInfo.getId());
 	}

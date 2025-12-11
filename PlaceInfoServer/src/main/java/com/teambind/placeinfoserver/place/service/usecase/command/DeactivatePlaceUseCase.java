@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DeactivatePlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 업체 비활성화
 	 *
@@ -28,7 +28,7 @@ public class DeactivatePlaceUseCase {
 	public String execute(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		placeInfo.deactivate();
 		return String.valueOf(placeInfo.getId());
 	}

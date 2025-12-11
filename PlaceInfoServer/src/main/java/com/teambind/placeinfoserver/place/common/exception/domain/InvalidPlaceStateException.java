@@ -9,38 +9,38 @@ import com.teambind.placeinfoserver.place.common.exception.PlaceException;
  * HTTP 400 Bad Request
  */
 public class InvalidPlaceStateException extends PlaceException {
-
+	
 	public InvalidPlaceStateException(ErrorCode errorCode) {
 		super(errorCode);
 	}
-
+	
 	public InvalidPlaceStateException(ErrorCode errorCode, String message) {
 		super(errorCode, message);
 	}
-
-	@Override
-	public String getExceptionType() {
-		return "DOMAIN";
-	}
-
+	
 	public static InvalidPlaceStateException alreadyDeleted() {
 		return new InvalidPlaceStateException(
 				ErrorCode.PLACE_ALREADY_DELETED,
 				"이미 삭제된 장소입니다."
 		);
 	}
-
+	
 	public static InvalidPlaceStateException notActive() {
 		return new InvalidPlaceStateException(
 				ErrorCode.PLACE_NOT_ACTIVE,
 				"활성화되지 않은 장소입니다."
 		);
 	}
-
+	
 	public static InvalidPlaceStateException alreadyActive() {
 		return new InvalidPlaceStateException(
 				ErrorCode.PLACE_ALREADY_ACTIVE,
 				"이미 활성화된 장소입니다."
 		);
+	}
+	
+	@Override
+	public String getExceptionType() {
+		return "DOMAIN";
 	}
 }

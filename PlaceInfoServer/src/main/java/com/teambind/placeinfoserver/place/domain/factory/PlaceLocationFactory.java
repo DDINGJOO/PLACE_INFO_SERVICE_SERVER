@@ -40,7 +40,7 @@ public class PlaceLocationFactory {
 		
 		// 좌표 유효성 검증
 		validateCoordinates(latitude, longitude);
-
+		
 		// PostGIS Point 생성
 		Point coordinates = GeometryUtil.createPoint(latitude, longitude);
 		

@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DeletePlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 업체 삭제 (소프트 삭제)
 	 *
@@ -28,7 +28,7 @@ public class DeletePlaceUseCase {
 	public void execute(String placeId, String deletedBy) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		placeInfo.softDelete(deletedBy);
 		// @Transactional이므로 자동으로 변경사항 반영
 	}

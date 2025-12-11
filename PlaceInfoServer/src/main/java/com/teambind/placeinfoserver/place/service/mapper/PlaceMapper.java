@@ -18,19 +18,19 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class PlaceMapper {
-
+	
 	private final AddressParser addressParser;
 	private final PlaceContactFactory contactFactory;
 	private final PlaceLocationFactory locationFactory;
 	private final PlaceParkingFactory parkingFactory;
-
+	
 	/**
 	 * AddressParser 접근자 (부분 업데이트 시 필요)
 	 */
 	public AddressParser getAddressParser() {
 		return addressParser;
 	}
-
+	
 	// ========== Entity -> Response DTO ==========
 	
 	/**
@@ -40,18 +40,18 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-
+		
 		// 구조화된 이미지 정보 생성 (null 필터링 포함)
 		List<ImageInfoResponse> images = entity.getImages().stream()
 				.map(ImageInfoResponse::fromEntity)
 				.filter(Objects::nonNull)  // null 값 필터링
 				.collect(Collectors.toList());
-
+		
 		// 하위 호환성을 위한 imageUrls (구조화된 이미지에서 URL만 추출)
 		List<String> imageUrls = images.stream()
 				.map(ImageInfoResponse::getImageUrl)
 				.collect(Collectors.toList());
-
+		
 		return PlaceInfoResponse.builder()
 				.id(String.valueOf(entity.getId()))  // Long → String 변환 (클라이언트 통신용)
 				.userId(entity.getUserId())
@@ -83,12 +83,12 @@ public class PlaceMapper {
 		if (entity == null) {
 			return null;
 		}
-
+		
 		String thumbnailUrl = null;
 		if (!entity.getImages().isEmpty()) {
 			thumbnailUrl = entity.getImages().get(0).getImageUrl();
 		}
-
+		
 		String shortAddress = null;
 		if (entity.getLocation() != null && entity.getLocation().getAddress() != null) {
 			shortAddress = entity.getLocation().getAddress().getShortAddress();
@@ -256,7 +256,7 @@ public class PlaceMapper {
 		if (request == null) {
 			return null;
 		}
-
+		
 		// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 		// from과 addressData가 모두 있을 때만 파싱 수행
 		Address address = null;
@@ -264,7 +264,7 @@ public class PlaceMapper {
 			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
 			address = toAddressEntity(addressRequest);
 		}
-
+		
 		// Factory를 사용하여 PlaceLocation 생성
 		PlaceLocation location = locationFactory.create(
 				placeInfo,
@@ -272,12 +272,12 @@ public class PlaceMapper {
 				request.getLatitude(),
 				request.getLongitude()
 		);
-
+		
 		// 위치 안내 정보 설정
 		if (request.getLocationGuide() != null) {
 			location.updateLocationGuide(request.getLocationGuide());
 		}
-
+		
 		return location;
 	}
 	
@@ -378,13 +378,13 @@ public class PlaceMapper {
 		if (entity == null || request == null) {
 			return;
 		}
-
+		
 		if (request.getAddressData() != null) {
 			// AddressParser를 사용하여 외부 API 응답을 AddressRequest로 파싱
 			AddressRequest addressRequest = addressParser.parse(request.getFrom(), request.getAddressData());
 			entity.updateAddress(toAddressEntity(addressRequest));
 		}
-
+		
 		if (request.getLatitude() != null && request.getLongitude() != null) {
 			entity.setLatLng(request.getLatitude(), request.getLongitude());
 		}

@@ -2,7 +2,6 @@ package com.teambind.placeinfoserver.place.service.command;
 
 import com.teambind.placeinfoserver.place.common.exception.application.InvalidRequestException;
 import com.teambind.placeinfoserver.place.common.exception.domain.PlaceNotFoundException;
-import com.teambind.placeinfoserver.place.domain.entity.PlaceImage;
 import com.teambind.placeinfoserver.place.domain.entity.PlaceInfo;
 import com.teambind.placeinfoserver.place.events.event.ImagesChangeEventWrapper;
 import com.teambind.placeinfoserver.place.events.event.SequentialImageChangeEvent;
@@ -17,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceImageUpdateService {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
 	
@@ -48,26 +47,26 @@ public class PlaceImageUpdateService {
 	public String updateImage(ImagesChangeEventWrapper event) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(parseId(event.getReferenceId()))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		// 기존 이미지 삭제
 		placeInfo.removeAllImage();
-
+		
 		// 순서에 맞춰서 이미지 세팅
 		if (event.getImages() == null || event.getImages().isEmpty()) {
 			log.info("No images to update for placeId: {}", event.getReferenceId());
 			return String.valueOf(placeInfo.getId());  // Long → String 변환
 		}
-
+		
 		for (SequentialImageChangeEvent imageEvent : event.getImages()) {
 			// 이미지 쌍 검증
 			if (!validateImagePair(imageEvent, event.getReferenceId())) {
 				continue; // 유효하지 않은 이미지는 건너뛰기
 			}
-
+			
 			String imageId = imageEvent.getImageId();
 			String imageUrl = imageEvent.getImageUrl();
 			Integer eventSequence = imageEvent.getSequence();
-
+			
 			// sequence 활용하여 이미지 추가
 			if (eventSequence != null && eventSequence > 0) {
 				// sequence가 있으면 지정된 순서로
@@ -81,14 +80,14 @@ public class PlaceImageUpdateService {
 						event.getReferenceId(), imageId);
 			}
 		}
-
+		
 		log.info("Successfully updated {} images for placeId: {}",
 				placeInfo.getImages().size(), event.getReferenceId());
-
+		
 		// @Transactional이므로 자동으로 변경사항 반영 (더티 체킹)
 		return String.valueOf(placeInfo.getId());  // Long → String 변환
 	}
-
+	
 	/**
 	 * 이미지 쌍 검증
 	 * imageId와 imageUrl이 모두 유효한지 확인
@@ -102,26 +101,26 @@ public class PlaceImageUpdateService {
 			log.warn("Null image event for placeId: {}", placeId);
 			return false;
 		}
-
+		
 		String imageId = imageEvent.getImageId();
 		String imageUrl = imageEvent.getImageUrl();
-
+		
 		// imageId와 imageUrl 둘 다 필수
 		if (imageId == null || imageId.trim().isEmpty()) {
 			log.warn("Missing imageId in image pair for placeId: {}, imageUrl: {}",
 					placeId, imageUrl);
 			return false;
 		}
-
+		
 		if (imageUrl == null || imageUrl.trim().isEmpty()) {
 			log.warn("Missing imageUrl in image pair for placeId: {}, imageId: {}",
 					placeId, imageId);
 			return false;
 		}
-
+		
 		// URL 기본 검증 완료 (null과 빈 문자열은 이미 체크됨)
 		// 다양한 형식의 이미지 식별자 허용 (http, https, 상대경로, image://, 단순 ID 등)
-
+		
 		log.debug("Valid image pair for placeId: {}, imageId: {}, imageUrl: {}",
 				placeId, imageId, imageUrl);
 		return true;

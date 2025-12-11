@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class RoomCreatedEvent extends Event {
 	private Long roomId;
 	private Long placeId;
-
+	
 	public RoomCreatedEvent(Long roomId, Long placeId) {
 		super("room-created");
 		this.roomId = roomId;

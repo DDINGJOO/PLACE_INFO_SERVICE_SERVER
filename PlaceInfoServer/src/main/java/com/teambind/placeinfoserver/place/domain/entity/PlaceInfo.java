@@ -224,7 +224,7 @@ public class PlaceInfo extends BaseEntity {
 		this.images.add(image);
 		image.setPlaceInfo(this);
 	}
-
+	
 	/**
 	 * sequence를 지정하여 이미지 추가
 	 *
@@ -236,7 +236,7 @@ public class PlaceInfo extends BaseEntity {
 		if (imageId == null || imageUrl == null) {
 			throw new IllegalArgumentException("Cannot add image with null imageId or imageUrl");
 		}
-
+		
 		if (sequence == null || sequence < 1) {
 			// sequence가 유효하지 않으면 자동 sequence 사용
 			long autoSequence = this.images.size() + 1;
@@ -244,16 +244,16 @@ public class PlaceInfo extends BaseEntity {
 			addImage(placeImage);
 			return;
 		}
-
+		
 		if (this.images.size() >= 10) {
 			throw new IllegalStateException("이미지는 최대 10장까지만 등록 가능합니다.");
 		}
-
+		
 		PlaceImage placeImage = new PlaceImage(imageId, this, imageUrl, sequence);
 		this.images.add(placeImage);
 		placeImage.setPlaceInfo(this);
 	}
-
+	
 	/**
 	 * imageId와 imageUrl 쌍으로 이미지 추가 (자동 sequence 부여)
 	 *

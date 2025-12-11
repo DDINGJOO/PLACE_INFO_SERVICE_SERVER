@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class StatusChangeEvent extends Event {
 	private Long placeInfoId;
 	private PlaceOperationType status;
-
+	
 	public StatusChangeEvent(Long placeInfoId, PlaceOperationType status) {
 		super("place-status-change-event");
 		this.placeInfoId = placeInfoId;

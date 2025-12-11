@@ -17,11 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class RegisterPlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PrimaryKeyGenerator pkeyGenerator;
 	private final PlaceMapper placeMapper;
-
+	
 	/**
 	 * 업체 등록
 	 *
@@ -32,13 +32,13 @@ public class RegisterPlaceUseCase {
 	public PlaceInfoResponse execute(PlaceRegisterRequest request) {
 		// ID 생성 (Long 타입)
 		Long generatedId = pkeyGenerator.generateLongKey();
-
+		
 		// DTO -> Entity 변환
 		PlaceInfo placeInfo = placeMapper.toEntity(request, generatedId);
-
+		
 		// 저장
 		PlaceInfo savedPlace = placeInfoRepository.save(placeInfo);
-
+		
 		// Entity -> Response DTO 변환
 		return placeMapper.toResponse(savedPlace);
 	}

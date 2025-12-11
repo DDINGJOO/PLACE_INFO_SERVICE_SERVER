@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GetPlaceDetailUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final RoomRepository roomRepository;
 	private final PlaceMapper placeMapper;
-
+	
 	/**
 	 * 업체 상세 조회
 	 *
@@ -38,16 +38,16 @@ public class GetPlaceDetailUseCase {
 		Long parsedPlaceId = IdParser.parsePlaceId(placeId);
 		PlaceInfo placeInfo = placeInfoRepository.findById(parsedPlaceId)
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		PlaceInfoResponse response = placeMapper.toResponse(placeInfo);
-
+		
 		// Room 정보 추가
 		List<Room> rooms = roomRepository.findByPlaceIdAndIsActiveTrue(parsedPlaceId);
 		response.setRoomCount(rooms.size());
 		response.setRoomIds(rooms.stream()
 				.map(Room::getRoomId)
 				.collect(Collectors.toList()));
-
+		
 		return response;
 	}
 }

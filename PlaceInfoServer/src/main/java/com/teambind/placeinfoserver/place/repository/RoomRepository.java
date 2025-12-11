@@ -15,33 +15,33 @@ import java.util.Set;
  */
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
-
+	
 	/**
 	 * PlaceId로 활성화된 Room 목록 조회
 	 */
 	List<Room> findByPlaceIdAndIsActiveTrue(Long placeId);
-
+	
 	/**
 	 * 여러 PlaceId에 대한 활성화된 Room 목록 일괄 조회
 	 * 배치 조회 성능 최적화를 위한 메서드
 	 */
 	List<Room> findByPlaceIdInAndIsActiveTrue(Set<Long> placeIds);
-
+	
 	/**
 	 * PlaceId로 모든 Room 목록 조회
 	 */
 	List<Room> findByPlaceId(Long placeId);
-
+	
 	/**
 	 * RoomId로 Room 조회
 	 */
 	Optional<Room> findByRoomId(Long roomId);
-
+	
 	/**
 	 * PlaceId로 Room 개수 조회
 	 */
 	Long countByPlaceIdAndIsActiveTrue(Long placeId);
-
+	
 	/**
 	 * 여러 PlaceId의 활성화된 Room ID 목록 조회 (검색 결과용)
 	 */

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 public class AdminController {
-
+	
 	// Admin Command UseCases
 	private final ApprovePlaceUseCase approvePlaceUseCase;
 	private final RejectPlaceUseCase rejectPlaceUseCase;
@@ -32,11 +32,11 @@ public class AdminController {
 			}
 			return ResponseEntity.noContent().build();
 		}
-
+		
 		return ResponseEntity.badRequest().build();
 	}
-
-
+	
+	
 	@DeleteMapping("/{placeId}")
 	public ResponseEntity<Void> delete(@PathVariable(value = "placeId") String placeId) {
 		deletePlaceUseCase.execute(placeId, "ADMIN");

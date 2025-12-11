@@ -143,7 +143,7 @@ public class PlaceContact extends BaseEntity {
 	public void setSocialLinks(List<String> socialLinks) {
 		this.socialLinks = socialLinks;
 	}
-
+	
 	/**
 	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
 	 * PlaceInfo.setContact()에서만 호출되어야 함

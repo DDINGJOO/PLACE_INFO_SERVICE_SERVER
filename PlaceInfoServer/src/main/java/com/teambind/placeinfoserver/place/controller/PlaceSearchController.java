@@ -32,7 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place Search", description = "공간 탐색 API")
 public class PlaceSearchController {
-
+	
 	// Query UseCases
 	private final SearchPlacesUseCase searchPlacesUseCase;
 	private final GetPlaceDetailsBatchUseCase getPlaceDetailsBatchUseCase;
@@ -87,22 +87,22 @@ public class PlaceSearchController {
 		// URL 인코딩 확인을 위한 상세 로깅
 		log.info("====== 검색 요청 상세 정보 ======");
 		log.info("keyword=[{}], placeName=[{}]", keyword, placeName);
-
+		
 		if (keyword != null && !keyword.isEmpty()) {
 			log.info("keyword 상세: 길이={}, UTF-8 bytes={}",
-				keyword.length(),
-				java.util.Arrays.toString(keyword.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+					keyword.length(),
+					java.util.Arrays.toString(keyword.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
 		}
 		if (placeName != null && !placeName.isEmpty()) {
 			log.info("placeName 상세: 길이={}, UTF-8 bytes={}",
-				placeName.length(),
-				java.util.Arrays.toString(placeName.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+					placeName.length(),
+					java.util.Arrays.toString(placeName.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
 		}
 		log.info("location=({},{}), cursor={}, size={}", latitude, longitude, cursor, size);
 		log.info("================================");
-
+		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
-
+		
 		log.info("검색 결과: {} 건 조회됨", response.getCount());
 		return ResponseEntity.ok(response);
 	}
@@ -132,7 +132,7 @@ public class PlaceSearchController {
 		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
 				request.getLatitude(), request.getLongitude(), request.getRadius());
-
+		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(searchRequest);
 		return ResponseEntity.ok(response);
 	}
@@ -151,7 +151,7 @@ public class PlaceSearchController {
 			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-
+		
 		PlaceSearchRequest searchRequest = PlaceSearchRequest.builder()
 				.province(province)
 				.city(city)
@@ -161,11 +161,11 @@ public class PlaceSearchController {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-
+		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(searchRequest);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 인기 장소 조회 API
 	 */
@@ -176,7 +176,7 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-
+		
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.RATING)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
@@ -184,11 +184,11 @@ public class PlaceSearchController {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-
+		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 최신 등록 장소 조회 API
 	 */
@@ -199,7 +199,7 @@ public class PlaceSearchController {
 			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-
+		
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
@@ -207,11 +207,11 @@ public class PlaceSearchController {
 				.isActive(true)
 				.approvalStatus("APPROVED")
 				.build();
-
+		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 검색 결과 개수 조회 API
 	 */
@@ -224,10 +224,10 @@ public class PlaceSearchController {
 		Long count = searchRepository.countSearchResults(request);
 		return ResponseEntity.ok(new CountResponse(count));
 	}
-
+	
 	/**
 	 * 공간 배치 상세 조회 API
-	 *
+	 * <p>
 	 * 설계 결정:
 	 * - POST 메서드 사용: Request Body로 다수의 ID 전달
 	 * - 최대 50개 제한: 성능 최적화 및 메모리 관리
@@ -239,8 +239,8 @@ public class PlaceSearchController {
 	 */
 	@PostMapping("/batch/details")
 	@Operation(
-		summary = "공간 배치 상세 조회",
-		description = "여러 공간의 상세 정보를 한 번에 조회합니다. 최대 50개까지 조회 가능하며, 존재하지 않는 ID는 failed 필드에 반환됩니다."
+			summary = "공간 배치 상세 조회",
+			description = "여러 공간의 상세 정보를 한 번에 조회합니다. 최대 50개까지 조회 가능하며, 존재하지 않는 ID는 failed 필드에 반환됩니다."
 	)
 	@ApiResponse(responseCode = "200", description = "조회 성공 (부분 실패 포함)")
 	@ApiResponse(responseCode = "400", description = "잘못된 요청 (빈 목록, 개수 초과 등)")
@@ -248,13 +248,13 @@ public class PlaceSearchController {
 			@Valid @RequestBody PlaceBatchDetailRequest request
 	) {
 		log.info("배치 상세 조회 요청 - placeId 개수: {}", request.getPlaceIds().size());
-
+		
 		PlaceBatchDetailResponse response = getPlaceDetailsBatchUseCase.execute(request);
-
+		
 		log.info("배치 상세 조회 완료 - 성공: {}, 실패: {}",
 				response.getSuccessCount(),
 				response.getFailed() != null ? response.getFailed().size() : 0);
-
+		
 		return ResponseEntity.ok(response);
 	}
 }

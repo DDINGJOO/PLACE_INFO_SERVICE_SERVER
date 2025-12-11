@@ -16,22 +16,22 @@ import java.util.Set;
  */
 @Repository
 public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, Long> {
-
-    /**
-     * 배치 조회를 위한 메서드
-     * N+1 문제 방지를 위해 연관 엔티티를 Fetch Join으로 함께 조회
-     *
-     * @param ids 조회할 placeId 집합
-     * @return 조회된 PlaceInfo 목록 (존재하는 것만)
-     */
-    @Query("SELECT DISTINCT p FROM PlaceInfo p " +
-           "LEFT JOIN FETCH p.contact " +
-           "LEFT JOIN FETCH p.location " +
-           "LEFT JOIN FETCH p.parking " +
-           "LEFT JOIN FETCH p.images " +
-           "LEFT JOIN FETCH p.keywords " +
-           "WHERE p.id IN :ids " +
-           "AND p.isActive = true")
-    List<PlaceInfo> findAllByIdWithDetails(@Param("ids") Set<Long> ids);
-
+	
+	/**
+	 * 배치 조회를 위한 메서드
+	 * N+1 문제 방지를 위해 연관 엔티티를 Fetch Join으로 함께 조회
+	 *
+	 * @param ids 조회할 placeId 집합
+	 * @return 조회된 PlaceInfo 목록 (존재하는 것만)
+	 */
+	@Query("SELECT DISTINCT p FROM PlaceInfo p " +
+			"LEFT JOIN FETCH p.contact " +
+			"LEFT JOIN FETCH p.location " +
+			"LEFT JOIN FETCH p.parking " +
+			"LEFT JOIN FETCH p.images " +
+			"LEFT JOIN FETCH p.keywords " +
+			"WHERE p.id IN :ids " +
+			"AND p.isActive = true")
+	List<PlaceInfo> findAllByIdWithDetails(@Param("ids") Set<Long> ids);
+	
 }

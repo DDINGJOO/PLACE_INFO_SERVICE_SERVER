@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class RejectPlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 업체 거부
 	 *
@@ -28,7 +28,7 @@ public class RejectPlaceUseCase {
 	public String execute(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		placeInfo.reject();
 		return String.valueOf(placeInfo.getId());
 	}

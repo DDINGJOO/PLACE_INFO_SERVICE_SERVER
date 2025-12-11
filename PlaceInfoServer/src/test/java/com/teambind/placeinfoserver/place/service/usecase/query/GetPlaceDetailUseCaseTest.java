@@ -27,29 +27,29 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 @DisplayName("GetPlaceDetailUseCase 통합 테스트")
 class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
-
+	
 	@Autowired
 	private GetPlaceDetailUseCase getPlaceDetailUseCase;
-
+	
 	@Autowired
 	private PlaceInfoRepository placeInfoRepository;
-
+	
 	@Autowired
 	private EntityManager entityManager;
-
+	
 	@Autowired
 	private com.teambind.placeinfoserver.place.service.usecase.command.DeletePlaceUseCase deletePlaceUseCase;
-
+	
 	@BeforeEach
 	void setUp() {
 		PlaceTestFactory.resetSequence();
 		placeInfoRepository.deleteAll();
 	}
-
+	
 	@Nested
 	@DisplayName("업체 상세 조회 테스트")
 	class GetPlaceDetailTests {
-
+		
 		@Test
 		@DisplayName("존재하는 업체의 상세 정보를 조회할 수 있다")
 		void canGetPlaceDetail() {
@@ -58,17 +58,17 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			placeInfoRepository.save(place);
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When
 			PlaceInfoResponse response = getPlaceDetailUseCase.execute(String.valueOf(place.getId()));
-
+			
 			// Then
 			assertThat(response).isNotNull();
 			assertThat(response.getId()).isEqualTo(String.valueOf(place.getId()));
 			assertThat(response.getPlaceName()).isEqualTo(place.getPlaceName());
 			assertThat(response.getDescription()).isEqualTo(place.getDescription());
 		}
-
+		
 		@Test
 		@DisplayName("존재하지 않는 업체 조회 시 예외가 발생한다")
 		void throwsExceptionWhenPlaceNotFound() {
@@ -76,7 +76,7 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			assertThatThrownBy(() -> getPlaceDetailUseCase.execute("999999"))
 					.isInstanceOf(PlaceNotFoundException.class);
 		}
-
+		
 		@Test
 		@DisplayName("잘못된 ID 형식으로 조회 시 예외가 발생한다")
 		void throwsExceptionForInvalidIdFormat() {
@@ -84,7 +84,7 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			assertThatThrownBy(() -> getPlaceDetailUseCase.execute("invalid_id"))
 					.isInstanceOf(Exception.class);
 		}
-
+		
 		@Test
 		@DisplayName("조회한 응답에 모든 필수 필드가 포함된다")
 		void responseContainsAllRequiredFields() {
@@ -93,17 +93,17 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			placeInfoRepository.save(place);
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When
 			PlaceInfoResponse response = getPlaceDetailUseCase.execute(String.valueOf(place.getId()));
-
+			
 			// Then
 			assertThat(response.getId()).isNotNull();
 			assertThat(response.getPlaceName()).isNotNull();
 			assertThat(response.getDescription()).isNotNull();
 			assertThat(response.getCategory()).isNotNull();
 		}
-
+		
 		@Test
 		@DisplayName("@Transactional(readOnly=true)로 조회만 수행한다")
 		void performsReadOnlyQuery() {
@@ -113,15 +113,15 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			placeInfoRepository.save(place);
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When
 			getPlaceDetailUseCase.execute(String.valueOf(place.getId()));
-
+			
 			// Then - 데이터가 변경되지 않았는지 확인
 			PlaceInfo unchanged = placeInfoRepository.findById(place.getId()).orElseThrow();
 			assertThat(unchanged.getPlaceName()).isEqualTo(originalName);
 		}
-
+		
 		@Test
 		@DisplayName("연관된 엔티티 정보도 함께 조회된다")
 		void loadsRelatedEntities() {
@@ -130,15 +130,15 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			placeInfoRepository.save(place);
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When
 			PlaceInfoResponse response = getPlaceDetailUseCase.execute(String.valueOf(place.getId()));
-
+			
 			// Then
 			assertThat(response).isNotNull();
 			// 연관 엔티티 정보 확인 가능 (response 구조에 따라)
 		}
-
+		
 		@Test
 		@DisplayName("삭제된 업체 조회 시 예외가 발생한다")
 		void throwsExceptionWhenQueryingDeletedPlace() {
@@ -148,18 +148,18 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			Long placeId = place.getId();
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// DeletePlaceUseCase를 사용하여 soft-delete 실행
 			deletePlaceUseCase.execute(String.valueOf(placeId), "SYSTEM");
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When & Then
 			// @Where 어노테이션으로 인해 삭제된 엔티티는 조회되지 않음
 			assertThatThrownBy(() -> getPlaceDetailUseCase.execute(String.valueOf(placeId)))
 					.isInstanceOf(PlaceNotFoundException.class);
 		}
-
+		
 		@Test
 		@DisplayName("비활성화된 업체도 조회할 수 있다")
 		void canQueryInactivePlace() {
@@ -168,10 +168,10 @@ class GetPlaceDetailUseCaseTest extends BaseIntegrationTest {
 			placeInfoRepository.save(place);
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			// When
 			PlaceInfoResponse response = getPlaceDetailUseCase.execute(String.valueOf(place.getId()));
-
+			
 			// Then
 			assertThat(response).isNotNull();
 			assertThat(response.getId()).isEqualTo(String.valueOf(place.getId()));

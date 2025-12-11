@@ -8,15 +8,15 @@ import com.teambind.placeinfoserver.place.common.exception.PlaceException;
  * HTTP 400 Bad Request
  */
 public class AlreadyApprovedException extends PlaceException {
-
+	
 	public AlreadyApprovedException() {
 		super(ErrorCode.PLACE_ALREADY_APPROVED);
 	}
-
+	
 	public AlreadyApprovedException(String placeId) {
 		super(ErrorCode.PLACE_ALREADY_APPROVED, "이미 승인된 장소입니다. ID: " + placeId);
 	}
-
+	
 	@Override
 	public String getExceptionType() {
 		return "DOMAIN";

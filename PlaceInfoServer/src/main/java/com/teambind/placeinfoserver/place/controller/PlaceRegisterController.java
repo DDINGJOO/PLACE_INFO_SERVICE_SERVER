@@ -6,7 +6,10 @@ import com.teambind.placeinfoserver.place.dto.request.PlaceLocationRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.service.command.PlaceLocationUpdateService;
-import com.teambind.placeinfoserver.place.service.usecase.command.*;
+import com.teambind.placeinfoserver.place.service.usecase.command.ActivatePlaceUseCase;
+import com.teambind.placeinfoserver.place.service.usecase.command.DeactivatePlaceUseCase;
+import com.teambind.placeinfoserver.place.service.usecase.command.DeletePlaceUseCase;
+import com.teambind.placeinfoserver.place.service.usecase.command.RegisterPlaceUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/places")
 public class PlaceRegisterController {
-
+	
 	// Command UseCases
 	private final RegisterPlaceUseCase registerPlaceUseCase;
 	private final DeletePlaceUseCase deletePlaceUseCase;
@@ -42,7 +45,7 @@ public class PlaceRegisterController {
 			@RequestParam PlaceOperationType type,
 			@RequestParam boolean activate,
 			@PathVariable(value = "placeId") String placeId) {
-
+		
 		if (type == PlaceOperationType.ACTIVATE) {
 			if (activate) {
 				activatePlaceUseCase.execute(placeId);
@@ -51,7 +54,7 @@ public class PlaceRegisterController {
 			}
 			return ResponseEntity.noContent().build();
 		}
-
+		
 		return ResponseEntity.badRequest().build();
 	}
 	

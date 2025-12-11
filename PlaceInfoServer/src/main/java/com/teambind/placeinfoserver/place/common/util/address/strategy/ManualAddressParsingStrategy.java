@@ -16,20 +16,20 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ManualAddressParsingStrategy implements AddressParsingStrategy {
-
+	
 	private final ObjectMapper objectMapper;
-
+	
 	@Override
 	public AddressSource supports() {
 		return AddressSource.MANUAL;
 	}
-
+	
 	@Override
 	public AddressRequest parse(Object addressData) {
 		if (addressData == null) {
 			throw AddressParsingException.nullData();
 		}
-
+		
 		try {
 			return objectMapper.convertValue(addressData, AddressRequest.class);
 		} catch (Exception e) {

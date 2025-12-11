@@ -18,10 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UpdatePlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
-
+	
 	/**
 	 * 업체 정보 수정
 	 *
@@ -34,10 +34,10 @@ public class UpdatePlaceUseCase {
 		// 업체 조회 (String → Long 변환)
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(PlaceNotFoundException::new);
-
+		
 		// 업데이트 (Mapper의 updateEntity 사용)
 		placeMapper.updateEntity(placeInfo, request);
-
+		
 		// @Transactional이므로 자동으로 변경사항 반영 (더티 체킹)
 		// Entity -> Response DTO 변환
 		return placeMapper.toResponse(placeInfo);

@@ -28,24 +28,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaceMapperTest {
-
+	
 	private PlaceMapper mapper;
 	private AddressParser addressParser;
 	private PlaceContactFactory contactFactory;
 	private PlaceLocationFactory locationFactory;
 	private PlaceParkingFactory parkingFactory;
-
+	
 	@BeforeEach
 	void setUp() {
 		ObjectMapper objectMapper = new ObjectMapper();
-
+		
 		// Strategy Pattern: 모든 전략을 생성하여 AddressParser에 주입
 		List<AddressParsingStrategy> strategies = List.of(
 				new KakaoAddressParsingStrategy(objectMapper),
 				new NaverAddressParsingStrategy(objectMapper),
 				new ManualAddressParsingStrategy(objectMapper)
 		);
-
+		
 		addressParser = new AddressParser(strategies);
 		contactFactory = new PlaceContactFactory();
 		locationFactory = new PlaceLocationFactory();

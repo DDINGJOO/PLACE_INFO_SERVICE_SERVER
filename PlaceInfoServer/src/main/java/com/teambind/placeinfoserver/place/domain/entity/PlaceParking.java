@@ -111,7 +111,7 @@ public class PlaceParking extends BaseEntity {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
+	
 	/**
 	 * PlaceInfo 연관관계 설정 (Package-private for bidirectional relationship)
 	 */

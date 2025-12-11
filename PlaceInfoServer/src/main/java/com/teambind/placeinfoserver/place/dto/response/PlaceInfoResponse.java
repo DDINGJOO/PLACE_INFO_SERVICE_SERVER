@@ -25,30 +25,30 @@ public class PlaceInfoResponse {
 	private PlaceContactResponse contact;
 	private PlaceLocationResponse location;
 	private PlaceParkingResponse parking;
-
+	
 	/**
 	 * 구조화된 이미지 정보 목록
 	 * imageId, imageUrl, sequence 정보를 포함
 	 */
 	private List<ImageInfoResponse> images;
-
+	
 	/**
 	 * @deprecated 하위 호환성을 위해 유지, images 필드 사용 권장
 	 */
 	@Deprecated
 	private List<String> imageUrls;
-
+	
 	private List<KeywordResponse> keywords;
 	
 	private Boolean isActive;
 	private ApprovalStatus approvalStatus;
 	private Double ratingAverage;
 	private Integer reviewCount;
-
+	
 	// Room 정보
 	private Integer roomCount;
 	private List<Long> roomIds;
-
+	
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 }

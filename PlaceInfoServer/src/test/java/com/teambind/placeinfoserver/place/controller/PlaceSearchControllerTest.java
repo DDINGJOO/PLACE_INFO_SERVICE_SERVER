@@ -331,7 +331,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 	@Nested
 	@DisplayName("복합 조건 검색 테스트")
 	class ComplexSearchTest {
-
+		
 		@Test
 		@Order(17)
 		@DisplayName("복합 조건 검색 - 키워드 + 지역")
@@ -346,7 +346,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.items").isArray());
 		}
-
+		
 		@Test
 		@Order(18)
 		@DisplayName("복합 조건 검색 - 카테고리 + 주차 가능")
@@ -361,11 +361,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.items").isArray());
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("배치 상세 조회 API 테스트")
 	class BatchDetailSearchTest {
-
+		
 		@Test
 		@Order(19)
 		@DisplayName("배치 상세 조회 - 모든 ID 존재")
@@ -375,7 +375,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
 					.placeIds(placeIds)
 					.build();
-
+			
 			// When & Then
 			mockMvc.perform(post("/api/v1/places/search/batch/details")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -386,7 +386,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.results", hasSize(2)))
 					.andExpect(jsonPath("$.failed").doesNotExist()); // @JsonInclude로 빈 배열은 제외
 		}
-
+		
 		@Test
 		@Order(20)
 		@DisplayName("배치 상세 조회 - 부분 실패")
@@ -396,7 +396,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
 					.placeIds(placeIds)
 					.build();
-
+			
 			// When & Then
 			mockMvc.perform(post("/api/v1/places/search/batch/details")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -409,7 +409,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andExpect(jsonPath("$.failed", hasSize(2)))
 					.andExpect(jsonPath("$.failed", containsInAnyOrder(999999, 888888)));
 		}
-
+		
 		@Test
 		@Order(21)
 		@DisplayName("배치 상세 조회 - 빈 목록으로 요청시 400 에러")
@@ -418,7 +418,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
 					.placeIds(List.of())
 					.build();
-
+			
 			// When & Then
 			mockMvc.perform(post("/api/v1/places/search/batch/details")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -426,7 +426,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andDo(print())
 					.andExpect(status().isBadRequest());
 		}
-
+		
 		@Test
 		@Order(22)
 		@DisplayName("배치 상세 조회 - 최대 개수 초과시 400 에러")
@@ -435,11 +435,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 			List<Long> tooManyIds = java.util.stream.LongStream.rangeClosed(1, 51)
 					.boxed()
 					.collect(java.util.stream.Collectors.toList());
-
+			
 			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
 					.placeIds(tooManyIds)
 					.build();
-
+			
 			// When & Then
 			mockMvc.perform(post("/api/v1/places/search/batch/details")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -447,7 +447,7 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					.andDo(print())
 					.andExpect(status().isBadRequest());
 		}
-
+		
 		@Test
 		@Order(23)
 		@DisplayName("배치 상세 조회 - 중복 ID 처리")
@@ -459,11 +459,11 @@ class PlaceSearchControllerTest extends BaseIntegrationTest {
 					testPlace2.getId(),
 					testPlace2.getId()   // 중복
 			);
-
+			
 			PlaceBatchDetailRequest request = PlaceBatchDetailRequest.builder()
 					.placeIds(duplicateIds)
 					.build();
-
+			
 			// When & Then
 			mockMvc.perform(post("/api/v1/places/search/batch/details")
 							.contentType(MediaType.APPLICATION_JSON)

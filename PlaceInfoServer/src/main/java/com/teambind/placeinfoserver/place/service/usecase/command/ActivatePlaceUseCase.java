@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ActivatePlaceUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 업체 활성화
 	 *
@@ -28,7 +28,7 @@ public class ActivatePlaceUseCase {
 	public String execute(String placeId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(() -> new PlaceNotFoundException());
-
+		
 		placeInfo.activate();
 		return String.valueOf(placeInfo.getId());
 	}

@@ -15,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class RoomCreateService {
-
+	
 	private final RoomRepository roomRepository;
-
+	
 	/**
 	 * Room 생성
 	 *
-	 * @param roomId Room ID (외부 서비스에서 생성된 ID)
+	 * @param roomId  Room ID (외부 서비스에서 생성된 ID)
 	 * @param placeId PlaceInfo ID
 	 */
 	@Transactional
@@ -31,13 +31,13 @@ public class RoomCreateService {
 			log.warn("Room already exists: roomId={}, placeId={}", roomId, placeId);
 			return;
 		}
-
+		
 		Room room = Room.builder()
 				.roomId(roomId)
 				.placeId(placeId)
 				.isActive(true)
 				.build();
-
+		
 		roomRepository.save(room);
 		log.info("Room created successfully: roomId={}, placeId={}", roomId, placeId);
 	}

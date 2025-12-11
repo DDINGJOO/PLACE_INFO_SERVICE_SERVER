@@ -16,20 +16,20 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class NaverAddressParsingStrategy implements AddressParsingStrategy {
-
+	
 	private final ObjectMapper objectMapper;
-
+	
 	@Override
 	public AddressSource supports() {
 		return AddressSource.NAVER;
 	}
-
+	
 	@Override
 	public AddressRequest parse(Object addressData) {
 		if (addressData == null) {
 			throw AddressParsingException.nullData();
 		}
-
+		
 		try {
 			NaverAddressRequest naverAddress = objectMapper.convertValue(
 					addressData,

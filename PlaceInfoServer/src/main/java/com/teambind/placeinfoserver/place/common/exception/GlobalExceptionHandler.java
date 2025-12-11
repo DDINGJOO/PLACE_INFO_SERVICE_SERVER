@@ -1,9 +1,9 @@
 package com.teambind.placeinfoserver.place.common.exception;
 
 import com.teambind.placeinfoserver.place.common.exception.application.ForbiddenException;
-import com.teambind.placeinfoserver.place.common.exception.application.InvalidRequestException;
 import com.teambind.placeinfoserver.place.common.exception.application.UnauthorizedException;
-import com.teambind.placeinfoserver.place.common.exception.domain.*;
+import com.teambind.placeinfoserver.place.common.exception.domain.InvalidPlaceStateException;
+import com.teambind.placeinfoserver.place.common.exception.domain.PlaceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
+	
 	/**
 	 * PlaceException 계층 구조 통합 처리
 	 */
@@ -26,11 +26,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handlePlaceException(
 			PlaceException ex, HttpServletRequest request) {
 		log.warn("PlaceException [{}]: {}", ex.getExceptionType(), ex.getMessage());
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
 	}
-
+	
 	/**
 	 * Domain Exception 개별 처리 (필요시)
 	 */
@@ -38,20 +38,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handlePlaceNotFoundException(
 			PlaceNotFoundException ex, HttpServletRequest request) {
 		log.warn("PlaceNotFoundException: {}", ex.getMessage());
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}
-
+	
 	@ExceptionHandler(InvalidPlaceStateException.class)
 	public ResponseEntity<ErrorResponse> handleInvalidPlaceStateException(
 			InvalidPlaceStateException ex, HttpServletRequest request) {
 		log.warn("InvalidPlaceStateException: {}", ex.getMessage());
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
-
+	
 	/**
 	 * Application Exception 개별 처리 (필요시)
 	 */
@@ -59,20 +59,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleUnauthorizedException(
 			UnauthorizedException ex, HttpServletRequest request) {
 		log.warn("UnauthorizedException: {}", ex.getMessage());
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
 	}
-
+	
 	@ExceptionHandler(ForbiddenException.class)
 	public ResponseEntity<ErrorResponse> handleForbiddenException(
 			ForbiddenException ex, HttpServletRequest request) {
 		log.warn("ForbiddenException: {}", ex.getMessage());
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
 	}
-
+	
 	/**
 	 * 기존 CustomException 하위 호환성 유지
 	 */
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleCustomException(
 			CustomException ex, HttpServletRequest request) {
 		log.warn("CustomException: {}", ex.getMessage());
-
+		
 		ErrorCode errorCode = ex.getErrorCode();
 		HttpStatus status = errorCode.getStatus();
 		ErrorResponse body = ErrorResponse.of(
@@ -90,7 +90,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				request.getRequestURI());
 		return ResponseEntity.status(status).body(body);
 	}
-
+	
 	/**
 	 * Validation 예외 처리 (필드 에러 상세 정보 포함)
 	 */
@@ -101,7 +101,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			org.springframework.http.HttpStatusCode status,
 			WebRequest request) {
 		log.warn("Validation failed: {} field errors", ex.getBindingResult().getFieldErrorCount());
-
+		
 		ErrorResponse body = ErrorResponse.ofValidation(
 				HttpStatus.BAD_REQUEST.value(),
 				"VALIDATION_ERROR",
@@ -111,7 +111,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		);
 		return ResponseEntity.badRequest().body(body);
 	}
-
+	
 	/**
 	 * 일반 예외 처리 (최종 fallback)
 	 */
@@ -119,7 +119,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleGeneralException(
 			Exception ex, HttpServletRequest request) {
 		log.error("Unexpected exception occurred", ex);
-
+		
 		ErrorResponse errorResponse = ErrorResponse.of(
 				HttpStatus.INTERNAL_SERVER_ERROR.value(),
 				ErrorCode.INTERNAL_SERVER_ERROR.getErrCode(),
@@ -128,7 +128,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		);
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 	}
-
+	
 	private String extractPath(WebRequest request) {
 		String description = request.getDescription(false);
 		return description.replace("uri=", "");

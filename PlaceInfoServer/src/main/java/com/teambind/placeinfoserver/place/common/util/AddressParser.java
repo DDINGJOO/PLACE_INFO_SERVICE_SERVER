@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * 주소 데이터 파싱 유틸리티 (Context)
  * Strategy Pattern을 사용하여 주소 소스별 파싱 전략을 관리
- *
+ * <p>
  * 새로운 주소 소스 추가 시:
  * 1. AddressParsingStrategy 인터페이스 구현
  * 2. @Component로 등록
@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class AddressParser {
-
+	
 	private final Map<AddressSource, AddressParsingStrategy> strategies;
-
+	
 	/**
 	 * 생성자 주입으로 모든 전략을 자동 등록
 	 * Spring이 모든 AddressParsingStrategy 구현체를 주입
@@ -41,7 +41,7 @@ public class AddressParser {
 				));
 		log.info("AddressParser 초기화 완료. 등록된 전략: {}", strategies.keySet());
 	}
-
+	
 	/**
 	 * 주소 데이터 출처에 따라 적절한 파싱 전략 선택 및 실행
 	 *
@@ -52,11 +52,11 @@ public class AddressParser {
 	 */
 	public AddressRequest parse(AddressSource from, Object addressData) {
 		AddressParsingStrategy strategy = strategies.get(from);
-
+		
 		if (strategy == null) {
 			throw new UnsupportedAddressSourceException(from);
 		}
-
+		
 		return strategy.parse(addressData);
 	}
 }

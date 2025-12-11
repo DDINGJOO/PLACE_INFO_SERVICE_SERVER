@@ -96,11 +96,11 @@ public class PlaceSearchResponse {
 		// 상태
 		private Boolean isActive;
 		private String approvalStatus;
-
+		
 		// Room 정보
 		private Integer roomCount; // 룸 개수
 		private List<Long> roomIds; // 룸 ID 목록
-
+		
 		/**
 		 * 거리를 킬로미터로 변환하여 반환
 		 */

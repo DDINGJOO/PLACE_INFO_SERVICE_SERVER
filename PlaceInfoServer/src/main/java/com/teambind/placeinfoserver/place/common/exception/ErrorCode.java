@@ -61,6 +61,7 @@ public enum ErrorCode {
 	UNAUTHORIZED("AUTH_001", "Unauthorized access", HttpStatus.UNAUTHORIZED),
 	FORBIDDEN("AUTH_002", "Access forbidden", HttpStatus.FORBIDDEN),
 	INSUFFICIENT_PERMISSION("AUTH_003", "Insufficient permission", HttpStatus.FORBIDDEN),
+	APP_TYPE_REQUIRED("AUTH_004", "PLACE_MANAGER app required", HttpStatus.FORBIDDEN),
 	
 	// 검증 관련 에러 (VALIDATION_0XX)
 	INVALID_INPUT("VALIDATION_001", "Invalid input", HttpStatus.BAD_REQUEST),

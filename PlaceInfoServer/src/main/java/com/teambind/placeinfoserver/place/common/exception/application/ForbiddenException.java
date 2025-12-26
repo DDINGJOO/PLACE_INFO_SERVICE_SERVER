@@ -35,6 +35,13 @@ public class ForbiddenException extends PlaceException {
 	public static ForbiddenException adminOnly() {
 		return new ForbiddenException("관리자만 접근할 수 있습니다.");
 	}
+
+	public static ForbiddenException placeManagerOnly() {
+		return new ForbiddenException(
+				ErrorCode.APP_TYPE_REQUIRED,
+				"PLACE_MANAGER 앱에서만 접근 가능합니다."
+		);
+	}
 	
 	@Override
 	public String getExceptionType() {

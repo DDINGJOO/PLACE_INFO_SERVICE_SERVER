@@ -42,7 +42,14 @@ public class ForbiddenException extends PlaceException {
 				"PLACE_MANAGER 앱에서만 접근 가능합니다."
 		);
 	}
-	
+
+	public static ForbiddenException notOwner() {
+		return new ForbiddenException(
+				ErrorCode.NOT_OWNER,
+				"해당 리소스의 소유자만 접근할 수 있습니다."
+		);
+	}
+
 	@Override
 	public String getExceptionType() {
 		return "APPLICATION";

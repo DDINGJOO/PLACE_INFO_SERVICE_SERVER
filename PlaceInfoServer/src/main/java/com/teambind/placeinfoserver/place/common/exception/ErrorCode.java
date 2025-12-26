@@ -62,6 +62,8 @@ public enum ErrorCode {
 	FORBIDDEN("AUTH_002", "Access forbidden", HttpStatus.FORBIDDEN),
 	INSUFFICIENT_PERMISSION("AUTH_003", "Insufficient permission", HttpStatus.FORBIDDEN),
 	APP_TYPE_REQUIRED("AUTH_004", "PLACE_MANAGER app required", HttpStatus.FORBIDDEN),
+	HEADER_MISSING("AUTH_005", "Required header is missing", HttpStatus.BAD_REQUEST),
+	NOT_OWNER("AUTH_006", "Not the owner of this resource", HttpStatus.FORBIDDEN),
 	
 	// 검증 관련 에러 (VALIDATION_0XX)
 	INVALID_INPUT("VALIDATION_001", "Invalid input", HttpStatus.BAD_REQUEST),

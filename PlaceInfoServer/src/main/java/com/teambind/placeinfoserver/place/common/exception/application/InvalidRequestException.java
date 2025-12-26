@@ -41,7 +41,14 @@ public class InvalidRequestException extends PlaceException {
 				fieldName + "의 값이 허용 범위를 벗어났습니다: " + range
 		);
 	}
-	
+
+	public static InvalidRequestException headerMissing(String headerName) {
+		return new InvalidRequestException(
+				ErrorCode.HEADER_MISSING,
+				"잘못된 접근입니다. 필수 헤더가 누락되었습니다: " + headerName
+		);
+	}
+
 	@Override
 	public String getExceptionType() {
 		return "APPLICATION";

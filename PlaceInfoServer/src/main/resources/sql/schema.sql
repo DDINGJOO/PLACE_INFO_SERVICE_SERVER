@@ -59,9 +59,10 @@ CREATE TABLE place_info
     description     VARCHAR(500),
     category        VARCHAR(50),
     place_type      VARCHAR(50),
-    is_active       BOOLEAN      NOT NULL DEFAULT false,
-    approval_status VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
-    rating_average  DOUBLE PRECISION,
+    is_active           BOOLEAN      NOT NULL DEFAULT false,
+    approval_status     VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    registration_status VARCHAR(20)  NOT NULL DEFAULT 'UNREGISTERED',
+    rating_average      DOUBLE PRECISION,
     review_count    INTEGER               DEFAULT 0,
     deleted_at      TIMESTAMP,
     deleted_by      VARCHAR(100),
@@ -227,6 +228,10 @@ CREATE INDEX idx_place_info_category ON place_info (category);
 CREATE INDEX idx_place_info_place_type ON place_info (place_type);
 CREATE INDEX idx_place_info_rating ON place_info (rating_average);
 CREATE INDEX idx_place_info_created_at ON place_info (created_at);
+CREATE INDEX idx_place_info_registration_status ON place_info (registration_status);
+CREATE INDEX idx_place_info_registration_rating ON place_info (registration_status DESC, rating_average DESC);
+CREATE INDEX idx_place_info_registration_review ON place_info (registration_status DESC, review_count DESC);
+CREATE INDEX idx_place_info_registration_created ON place_info (registration_status DESC, created_at DESC);
 
 -- Place Contacts indexes
 CREATE INDEX idx_place_contacts_email ON place_contacts (email);
@@ -399,6 +404,8 @@ COMMENT
     ON COLUMN place_info.rating_average IS '리뷰 서비스에서 업데이트';
 COMMENT
     ON COLUMN place_info.review_count IS '리뷰 서비스에서 업데이트';
+COMMENT
+    ON COLUMN place_info.registration_status IS '업체 등록 상태 (REGISTERED: 정식 등록, UNREGISTERED: 미등록)';
 
 COMMENT
     ON COLUMN place_locations.coordinates IS 'PostGIS geography 타입 (SRID 4326)';

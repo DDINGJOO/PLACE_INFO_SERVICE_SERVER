@@ -3,6 +3,7 @@ package com.teambind.placeinfoserver.place.fixture;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
 import com.teambind.placeinfoserver.place.domain.enums.ParkingType;
+import com.teambind.placeinfoserver.place.domain.enums.RegistrationStatus;
 import com.teambind.placeinfoserver.place.domain.vo.Address;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -247,6 +248,7 @@ public class PlaceTestFactory {
 		private Integer reviewCount = 10;
 		private Boolean isActive = true;
 		private ApprovalStatus approvalStatus = ApprovalStatus.APPROVED;
+		private RegistrationStatus registrationStatus = RegistrationStatus.UNREGISTERED;
 		private Double latitude = 37.4979;
 		private Double longitude = 127.0276;
 		private Boolean parkingAvailable = true;
@@ -296,7 +298,22 @@ public class PlaceTestFactory {
 			this.approvalStatus = status;
 			return this;
 		}
-		
+
+		public PlaceInfoBuilder registrationStatus(RegistrationStatus status) {
+			this.registrationStatus = status;
+			return this;
+		}
+
+		public PlaceInfoBuilder registered() {
+			this.registrationStatus = RegistrationStatus.REGISTERED;
+			return this;
+		}
+
+		public PlaceInfoBuilder unregistered() {
+			this.registrationStatus = RegistrationStatus.UNREGISTERED;
+			return this;
+		}
+
 		public PlaceInfoBuilder location(Double latitude, Double longitude) {
 			this.latitude = latitude;
 			this.longitude = longitude;
@@ -323,6 +340,7 @@ public class PlaceTestFactory {
 					.reviewCount(reviewCount)
 					.isActive(isActive)
 					.approvalStatus(approvalStatus)
+					.registrationStatus(registrationStatus)
 					.images(new ArrayList<>())
 					.build();
 			

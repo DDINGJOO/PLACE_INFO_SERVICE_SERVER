@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.teambind.placeinfoserver.place.domain.entity.*;
 import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
+import com.teambind.placeinfoserver.place.domain.enums.RegistrationStatus;
 import com.teambind.placeinfoserver.place.dto.cursor.PlaceSearchCursor;
 import com.teambind.placeinfoserver.place.dto.request.PlaceSearchRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceSearchResponse;
@@ -316,6 +317,13 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 			if (StringUtils.hasText(request.getDistrict())) {
 				builder.and(placeLocation.address.district.eq(request.getDistrict()));
 			}
+		}
+
+		// 등록 상태 필터
+		if (StringUtils.hasText(request.getRegistrationStatus())) {
+			builder.and(placeInfo.registrationStatus.eq(
+					RegistrationStatus.valueOf(request.getRegistrationStatus())
+			));
 		}
 	}
 	

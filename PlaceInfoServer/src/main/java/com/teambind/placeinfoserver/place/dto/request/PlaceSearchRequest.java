@@ -115,7 +115,13 @@ public class PlaceSearchRequest {
 	 */
 	@Builder.Default
 	private String approvalStatus = "APPROVED";
-	
+
+	/**
+	 * 등록 상태 필터 (null이면 전체 조회)
+	 * REGISTERED: 등록 업체만, UNREGISTERED: 미등록 업체만
+	 */
+	private String registrationStatus;
+
 	/**
 	 * 위치 기반 검색 여부 확인
 	 */

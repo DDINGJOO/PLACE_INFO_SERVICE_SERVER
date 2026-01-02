@@ -1,6 +1,7 @@
 package com.teambind.placeinfoserver.place.domain.entity;
 
 import com.teambind.placeinfoserver.place.domain.enums.ApprovalStatus;
+import com.teambind.placeinfoserver.place.domain.enums.RegistrationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -127,7 +128,16 @@ public class PlaceInfo extends BaseEntity {
 	@Column(name = "approval_status", length = 20, nullable = false)
 	@Builder.Default
 	private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
-	
+
+	/**
+	 * 업체 등록 상태 (우리 서비스 정식 등록 여부)
+	 * 검색 시 등록 업체가 미등록 업체보다 우선 노출됨
+	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "registration_status", length = 20, nullable = false)
+	@Builder.Default
+	private RegistrationStatus registrationStatus = RegistrationStatus.UNREGISTERED;
+
 	/**
 	 * 평점 평균
 	 * 리뷰 서버에서 업데이트
@@ -310,12 +320,33 @@ public class PlaceInfo extends BaseEntity {
 	public void reject() {
 		this.approvalStatus = ApprovalStatus.REJECTED;
 	}
-	
+
+	/**
+	 * 업체 등록 (정식 등록 업체로 전환)
+	 */
+	public void register() {
+		this.registrationStatus = RegistrationStatus.REGISTERED;
+	}
+
+	/**
+	 * 업체 등록 해제 (미등록 업체로 전환)
+	 */
+	public void unregister() {
+		this.registrationStatus = RegistrationStatus.UNREGISTERED;
+	}
+
 	/**
 	 * 승인 상태 설정 (테스트용)
 	 */
 	public void setApprovalStatus(ApprovalStatus status) {
 		this.approvalStatus = status;
+	}
+
+	/**
+	 * 등록 상태 설정 (테스트용)
+	 */
+	public void setRegistrationStatus(RegistrationStatus status) {
+		this.registrationStatus = status;
 	}
 	
 	/**

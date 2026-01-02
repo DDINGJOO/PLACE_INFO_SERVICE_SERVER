@@ -114,6 +114,7 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 		long startTime = System.currentTimeMillis();
 		
 		// PostGIS를 활용한 위치 기반 검색 - ID만 조회
+		// 1차 정렬: 등록 업체 우선, 2차 정렬: 거리순
 		String sql = """
 				SELECT pi.id,
 				       ST_Distance(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) as distance
@@ -123,7 +124,7 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 				  AND pi.is_active = :isActive
 				  AND pi.approval_status = :approvalStatus
 				  AND ST_DWithin(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius)
-				ORDER BY distance
+				ORDER BY pi.registration_status DESC, distance
 				LIMIT :limit
 				""";
 		
@@ -387,10 +388,17 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	
 	/**
 	 * 정렬 조건 적용
+	 * 1차 정렬: 등록 업체 우선 (REGISTERED > UNREGISTERED)
+	 * 2차 정렬: 요청된 정렬 조건
+	 * 3차 정렬: ID (안정적 페이징)
 	 */
 	private void applyOrdering(JPAQuery<PlaceInfo> query, PlaceSearchRequest request) {
 		List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
-		
+
+		// 1차 정렬: 등록 업체 우선 (REGISTERED가 UNREGISTERED보다 먼저)
+		orderSpecifiers.add(placeInfo.registrationStatus.desc());
+
+		// 2차 정렬: 요청된 정렬 조건
 		switch (request.getSortBy()) {
 			case RATING -> {
 				orderSpecifiers.add(request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC
@@ -416,10 +424,10 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 				// DISTANCE는 PostGIS 쿼리에서 처리
 			}
 		}
-		
-		// ID로 2차 정렬 (안정적인 페이징을 위해)
+
+		// 3차 정렬: ID (안정적인 페이징을 위해)
 		orderSpecifiers.add(placeInfo.id.asc());
-		
+
 		query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]));
 	}
 	

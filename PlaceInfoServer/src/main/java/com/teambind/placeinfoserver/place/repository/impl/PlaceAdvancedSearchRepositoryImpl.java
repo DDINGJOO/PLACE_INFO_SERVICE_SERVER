@@ -115,7 +115,10 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 		long startTime = System.currentTimeMillis();
 		
 		// PostGIS를 활용한 위치 기반 검색 - ID만 조회
-		// 1차 정렬: 등록 업체 우선, 2차 정렬: 거리순
+		// registrationStatus 필터 적용 (null이면 전체 조회)
+		String registrationStatusFilter = StringUtils.hasText(request.getRegistrationStatus())
+				? "  AND pi.registration_status = :registrationStatus\n" : "";
+
 		String sql = """
 				SELECT pi.id,
 				       ST_Distance(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) as distance
@@ -125,19 +128,26 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 				  AND pi.is_active = :isActive
 				  AND pi.approval_status = :approvalStatus
 				  AND ST_DWithin(pl.coordinates, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius)
-				ORDER BY pi.registration_status DESC, distance
+				""" + registrationStatusFilter + """
+				ORDER BY distance
 				LIMIT :limit
 				""";
 		
-		@SuppressWarnings("unchecked")
-		List<Object[]> results = entityManager.createNativeQuery(sql)
+		var nativeQuery = entityManager.createNativeQuery(sql)
 				.setParameter("lat", request.getLatitude())
 				.setParameter("lng", request.getLongitude())
 				.setParameter("radius", request.getRadiusInMeters())
 				.setParameter("isActive", request.getIsActive())
 				.setParameter("approvalStatus", request.getApprovalStatus())
-				.setParameter("limit", request.getSize() + 1)  // hasNext 판단용
-				.getResultList();
+				.setParameter("limit", request.getSize() + 1);  // hasNext 판단용
+
+		// registrationStatus 파라미터 설정 (필터가 있는 경우에만)
+		if (StringUtils.hasText(request.getRegistrationStatus())) {
+			nativeQuery.setParameter("registrationStatus", request.getRegistrationStatus());
+		}
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> results = nativeQuery.getResultList();
 		
 		if (results.isEmpty()) {
 			return PlaceSearchResponse.empty();
@@ -396,17 +406,13 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 	
 	/**
 	 * 정렬 조건 적용
-	 * 1차 정렬: 등록 업체 우선 (REGISTERED > UNREGISTERED)
-	 * 2차 정렬: 요청된 정렬 조건
-	 * 3차 정렬: ID (안정적 페이징)
+	 * 1차 정렬: 요청된 정렬 조건
+	 * 2차 정렬: ID (안정적 페이징)
 	 */
 	private void applyOrdering(JPAQuery<PlaceInfo> query, PlaceSearchRequest request) {
 		List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
-		// 1차 정렬: 등록 업체 우선 (REGISTERED가 UNREGISTERED보다 먼저)
-		orderSpecifiers.add(placeInfo.registrationStatus.desc());
-
-		// 2차 정렬: 요청된 정렬 조건
+		// 1차 정렬: 요청된 정렬 조건
 		switch (request.getSortBy()) {
 			case RATING -> {
 				orderSpecifiers.add(request.getSortDirection() == PlaceSearchRequest.SortDirection.DESC
@@ -433,7 +439,7 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 			}
 		}
 
-		// 3차 정렬: ID (안정적인 페이징을 위해)
+		// 2차 정렬: ID (안정적인 페이징을 위해)
 		orderSpecifiers.add(placeInfo.id.asc());
 
 		query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]));
@@ -481,7 +487,9 @@ public class PlaceAdvancedSearchRepositoryImpl implements PlaceAdvancedSearchRep
 							.ratingAverage(entity.getRatingAverage())
 							.reviewCount(entity.getReviewCount())
 							.isActive(entity.getIsActive())
-							.approvalStatus(String.valueOf(entity.getApprovalStatus()));
+							.approvalStatus(String.valueOf(entity.getApprovalStatus()))
+							.registrationStatus(entity.getRegistrationStatus() != null
+									? entity.getRegistrationStatus().name() : null);
 					
 					// 위치 정보
 					if (entity.getLocation() != null) {

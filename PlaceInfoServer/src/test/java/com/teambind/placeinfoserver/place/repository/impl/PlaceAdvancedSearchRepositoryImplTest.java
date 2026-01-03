@@ -541,82 +541,8 @@ class PlaceAdvancedSearchRepositoryImplTest {
 	}
 	
 	@Nested
-	@DisplayName("등록 업체 우선 정렬 테스트")
-	class RegistrationStatusSortingTests {
-
-		@Test
-		@DisplayName("검색 시 등록 업체가 미등록 업체보다 먼저 노출된다")
-		void registeredPlacesAppearFirst() {
-			// Given
-			PlaceInfo unregistered1 = PlaceTestFactory.builder()
-					.placeName("미등록 업체 1")
-					.rating(4.9)
-					.unregistered()
-					.build();
-			PlaceInfo registered1 = PlaceTestFactory.builder()
-					.placeName("등록 업체 1")
-					.rating(4.0)
-					.registered()
-					.build();
-			PlaceInfo unregistered2 = PlaceTestFactory.builder()
-					.placeName("미등록 업체 2")
-					.rating(4.8)
-					.unregistered()
-					.build();
-			PlaceInfo registered2 = PlaceTestFactory.builder()
-					.placeName("등록 업체 2")
-					.rating(3.5)
-					.registered()
-					.build();
-
-			placeInfoRepository.saveAll(List.of(unregistered1, registered1, unregistered2, registered2));
-			entityManager.flush();
-			entityManager.clear();
-
-			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
-					.sortBy(PlaceSearchRequest.SortBy.RATING)
-					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
-					.build();
-
-			// When
-			PlaceSearchResponse response = searchRepository.searchWithCursor(request);
-
-			// Then
-			assertThat(response.getItems()).hasSize(4);
-			// 등록 업체들이 먼저 (평점 높은 순)
-			assertThat(response.getItems().get(0).getPlaceName()).isEqualTo("등록 업체 1");
-			assertThat(response.getItems().get(1).getPlaceName()).isEqualTo("등록 업체 2");
-			// 미등록 업체들이 나중에 (평점 높은 순)
-			assertThat(response.getItems().get(2).getPlaceName()).isEqualTo("미등록 업체 1");
-			assertThat(response.getItems().get(3).getPlaceName()).isEqualTo("미등록 업체 2");
-		}
-
-		@Test
-		@DisplayName("등록 업체 내에서 기존 정렬 조건이 적용된다")
-		void sortingAppliesWithinRegisteredPlaces() {
-			// Given
-			PlaceInfo reg1 = PlaceTestFactory.builder().placeName("등록A").rating(4.0).registered().build();
-			PlaceInfo reg2 = PlaceTestFactory.builder().placeName("등록B").rating(4.8).registered().build();
-			PlaceInfo reg3 = PlaceTestFactory.builder().placeName("등록C").rating(4.5).registered().build();
-
-			placeInfoRepository.saveAll(List.of(reg1, reg2, reg3));
-			entityManager.flush();
-			entityManager.clear();
-
-			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
-					.sortBy(PlaceSearchRequest.SortBy.RATING)
-					.sortDirection(PlaceSearchRequest.SortDirection.DESC)
-					.build();
-
-			// When
-			PlaceSearchResponse response = searchRepository.searchWithCursor(request);
-
-			// Then
-			assertThat(response.getItems()).hasSize(3);
-			assertThat(response.getItems().get(0).getRatingAverage()).isEqualTo(4.8);
-			assertThat(response.getItems().get(1).getRatingAverage()).isEqualTo(4.5);
-			assertThat(response.getItems().get(2).getRatingAverage()).isEqualTo(4.0);
-		}
+	@DisplayName("등록 상태 필터 테스트")
+	class RegistrationStatusFilterTests {
 
 		@Test
 		@DisplayName("등록 업체만 필터링하여 조회한다")

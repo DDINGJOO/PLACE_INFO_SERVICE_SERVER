@@ -24,5 +24,6 @@ public class PlaceInfoSummaryResponse {
 	private Double ratingAverage;
 	private Integer reviewCount;
 	private ApprovalStatus approvalStatus;
+	private String registrationStatus;
 	private Boolean isActive;
 }

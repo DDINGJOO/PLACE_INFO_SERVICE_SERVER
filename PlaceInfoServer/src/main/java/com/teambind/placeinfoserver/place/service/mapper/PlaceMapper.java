@@ -69,6 +69,8 @@ public class PlaceMapper {
 						.collect(Collectors.toList()))
 				.isActive(entity.getIsActive())
 				.approvalStatus(entity.getApprovalStatus())
+				.registrationStatus(entity.getRegistrationStatus() != null
+						? entity.getRegistrationStatus().name() : null)
 				.ratingAverage(entity.getRatingAverage())
 				.reviewCount(entity.getReviewCount())
 				.createdAt(entity.getCreatedAt())
@@ -110,6 +112,8 @@ public class PlaceMapper {
 				.ratingAverage(entity.getRatingAverage())
 				.reviewCount(entity.getReviewCount())
 				.approvalStatus(entity.getApprovalStatus())
+				.registrationStatus(entity.getRegistrationStatus() != null
+						? entity.getRegistrationStatus().name() : null)
 				.isActive(entity.getIsActive())
 				.build();
 	}

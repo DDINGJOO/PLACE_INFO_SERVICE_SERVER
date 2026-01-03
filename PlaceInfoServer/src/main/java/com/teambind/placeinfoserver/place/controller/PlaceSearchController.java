@@ -63,7 +63,9 @@ public class PlaceSearchController {
 			@Parameter(description = "정렬 방향", example = "ASC, DESC")
 			@RequestParam(defaultValue = "ASC") PlaceSearchRequest.SortDirection sortDirection,
 			@Parameter(description = "페이징 커서") @RequestParam(required = false) String cursor,
-			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
+			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size,
+			@Parameter(description = "등록 상태 필터", example = "REGISTERED, UNREGISTERED")
+			@RequestParam(required = false) String registrationStatus
 	) {
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.keyword(keyword)
@@ -82,6 +84,7 @@ public class PlaceSearchController {
 				.sortDirection(sortDirection)
 				.cursor(cursor)
 				.size(size)
+				.registrationStatus(registrationStatus)
 				.build();
 		
 		// URL 인코딩 확인을 위한 상세 로깅
@@ -128,6 +131,7 @@ public class PlaceSearchController {
 				.sortDirection(PlaceSearchRequest.SortDirection.ASC)
 				.cursor(request.getCursor())
 				.size(request.getSize())
+				.registrationStatus(request.getRegistrationStatus())
 				.build();
 		
 		log.info("위치 기반 검색: ({}, {}) 반경 {}m",
@@ -148,10 +152,12 @@ public class PlaceSearchController {
 			@Parameter(description = "시/군/구") @RequestParam(required = false) String city,
 			@Parameter(description = "동/읍/면") @RequestParam(required = false) String district,
 			@Parameter(description = "페이징 커서") @RequestParam(required = false) String cursor,
-			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size
+			@Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") Integer size,
+			@Parameter(description = "등록 상태 필터", example = "REGISTERED, UNREGISTERED")
+			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-		
+
 		PlaceSearchRequest searchRequest = PlaceSearchRequest.builder()
 				.province(province)
 				.city(city)
@@ -160,6 +166,7 @@ public class PlaceSearchController {
 				.size(size != null ? size : 20)
 				.isActive(true)
 				.approvalStatus("APPROVED")
+				.registrationStatus(registrationStatus)
 				.build();
 		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(searchRequest);
@@ -173,16 +180,19 @@ public class PlaceSearchController {
 	@Operation(summary = "인기 장소 조회", description = "평점과 리뷰 기준 인기 장소를 조회합니다")
 	@ApiResponse(responseCode = "200", description = "조회 성공")
 	public ResponseEntity<PlaceSearchResponse> getPopularPlaces(
-			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
+			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size,
+			@Parameter(description = "등록 상태 필터", example = "REGISTERED, UNREGISTERED")
+			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-		
+
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.RATING)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
 				.size(size != null ? size : 10)
 				.isActive(true)
 				.approvalStatus("APPROVED")
+				.registrationStatus(registrationStatus)
 				.build();
 		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);
@@ -196,16 +206,19 @@ public class PlaceSearchController {
 	@Operation(summary = "최신 장소 조회", description = "최근 등록된 장소를 조회합니다")
 	@ApiResponse(responseCode = "200", description = "조회 성공")
 	public ResponseEntity<PlaceSearchResponse> getRecentPlaces(
-			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size
+			@Parameter(description = "조회 개수") @RequestParam(defaultValue = "10") Integer size,
+			@Parameter(description = "등록 상태 필터", example = "REGISTERED, UNREGISTERED")
+			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-		
+
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
 				.size(size != null ? size : 10)
 				.isActive(true)
 				.approvalStatus("APPROVED")
+				.registrationStatus(registrationStatus)
 				.build();
 		
 		PlaceSearchResponse response = searchPlacesUseCase.execute(request);

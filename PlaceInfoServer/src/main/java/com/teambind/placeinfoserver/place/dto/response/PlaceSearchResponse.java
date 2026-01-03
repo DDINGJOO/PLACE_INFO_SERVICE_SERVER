@@ -96,6 +96,7 @@ public class PlaceSearchResponse {
 		// 상태
 		private Boolean isActive;
 		private String approvalStatus;
+		private String registrationStatus;
 		
 		// Room 정보
 		private Integer roomCount; // 룸 개수

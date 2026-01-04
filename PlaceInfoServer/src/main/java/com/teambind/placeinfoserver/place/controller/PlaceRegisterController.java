@@ -33,17 +33,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/places")
 public class PlaceRegisterController {
-
+	
 	private static final String HEADER_APP_TYPE = "X-App-Type";
 	private static final String HEADER_USER_ID = "X-User-Id";
-
+	
 	private final RegisterPlaceUseCase registerPlaceUseCase;
 	private final DeletePlaceUseCase deletePlaceUseCase;
 	private final ActivatePlaceUseCase activatePlaceUseCase;
 	private final DeactivatePlaceUseCase deactivatePlaceUseCase;
 	private final PlaceLocationUpdateService locationService;
 	private final PlaceInfoRepository placeInfoRepository;
-
+	
 	/**
 	 * 필수 헤더 검증
 	 */
@@ -52,7 +52,7 @@ public class PlaceRegisterController {
 			throw InvalidRequestException.headerMissing(headerName);
 		}
 	}
-
+	
 	/**
 	 * X-App-Type 헤더를 파싱하여 AppType으로 변환
 	 */
@@ -64,7 +64,7 @@ public class PlaceRegisterController {
 			throw InvalidRequestException.invalidFormat(HEADER_APP_TYPE);
 		}
 	}
-
+	
 	/**
 	 * PLACE_MANAGER 앱 타입 검증
 	 */
@@ -73,19 +73,19 @@ public class PlaceRegisterController {
 			throw ForbiddenException.placeManagerOnly();
 		}
 	}
-
+	
 	/**
 	 * 소유주 검증 (기존 리소스에 대해)
 	 */
 	private void validateOwnership(String placeId, String userId) {
 		PlaceInfo placeInfo = placeInfoRepository.findById(IdParser.parsePlaceId(placeId))
 				.orElseThrow(PlaceNotFoundException::new);
-
+		
 		if (!placeInfo.getUserId().equals(userId)) {
 			throw ForbiddenException.notOwner();
 		}
 	}
-
+	
 	/**
 	 * 등록 요청의 소유주 ID와 헤더의 사용자 ID 일치 검증
 	 */
@@ -94,7 +94,7 @@ public class PlaceRegisterController {
 			throw ForbiddenException.notOwner();
 		}
 	}
-
+	
 	@PostMapping()
 	public ResponseEntity<PlaceInfoResponse> register(
 			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,
@@ -103,11 +103,11 @@ public class PlaceRegisterController {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
 		validateRegisterOwnership(req.getPlaceOwnerId(), userId);
-
+		
 		PlaceInfoResponse response = registerPlaceUseCase.execute(req);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	@PatchMapping("/{placeId}")
 	public ResponseEntity<Void> updatePlaceStatus(
 			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,
@@ -118,7 +118,7 @@ public class PlaceRegisterController {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
 		validateOwnership(placeId, userId);
-
+		
 		if (type == PlaceOperationType.ACTIVATE) {
 			if (activate) {
 				activatePlaceUseCase.execute(placeId);
@@ -127,10 +127,10 @@ public class PlaceRegisterController {
 			}
 			return ResponseEntity.noContent().build();
 		}
-
+		
 		return ResponseEntity.badRequest().build();
 	}
-
+	
 	@PutMapping("/{placeId}/locations")
 	public ResponseEntity<Map<String, String>> registerLocation(
 			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,
@@ -140,13 +140,13 @@ public class PlaceRegisterController {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
 		validateOwnership(placeId, userId);
-
+		
 		String responseId = locationService.updateLocation(placeId, req);
 		return ResponseEntity.ok(
 				Map.of("placeId", responseId)
 		);
 	}
-
+	
 	@DeleteMapping("/{placeId}")
 	public ResponseEntity<Void> delete(
 			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,
@@ -155,7 +155,7 @@ public class PlaceRegisterController {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
 		validateOwnership(placeId, userId);
-
+		
 		deletePlaceUseCase.execute(placeId, userId);
 		return ResponseEntity.noContent().build();
 	}

@@ -27,13 +27,13 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Place", description = "공간 기본 조회 API")
 public class PlaceController {
-
+	
 	private static final String HEADER_APP_TYPE = "X-App-Type";
 	private static final String HEADER_USER_ID = "X-User-Id";
-
+	
 	private final GetPlaceDetailUseCase getPlaceDetailUseCase;
 	private final GetPlacesByUserUseCase getPlacesByUserUseCase;
-
+	
 	/**
 	 * 내 공간 목록 조회 API
 	 * PLACE_MANAGER 앱에서만 사용 가능
@@ -53,15 +53,15 @@ public class PlaceController {
 	) {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
-
+		
 		log.info("내 공간 목록 조회 요청: userId={}", userId);
-
+		
 		List<PlaceInfoResponse> response = getPlacesByUserUseCase.execute(userId);
-
+		
 		log.info("내 공간 목록 조회 완료: userId={}, count={}", userId, response.size());
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * ID로 공간 상세 조회 API
 	 *
@@ -77,13 +77,13 @@ public class PlaceController {
 			@PathVariable String placeId
 	) {
 		log.info("공간 상세 조회 요청: placeId={}", placeId);
-
+		
 		PlaceInfoResponse response = getPlaceDetailUseCase.execute(placeId);
-
+		
 		log.info("공간 상세 조회 완료: placeId={}, placeName={}", placeId, response.getPlaceName());
 		return ResponseEntity.ok(response);
 	}
-
+	
 	/**
 	 * 필수 헤더 검증
 	 */
@@ -92,7 +92,7 @@ public class PlaceController {
 			throw InvalidRequestException.headerMissing(headerName);
 		}
 	}
-
+	
 	/**
 	 * X-App-Type 헤더를 파싱하여 AppType으로 변환
 	 */
@@ -104,7 +104,7 @@ public class PlaceController {
 			throw InvalidRequestException.invalidFormat(HEADER_APP_TYPE);
 		}
 	}
-
+	
 	/**
 	 * PLACE_MANAGER 앱 타입 검증
 	 */

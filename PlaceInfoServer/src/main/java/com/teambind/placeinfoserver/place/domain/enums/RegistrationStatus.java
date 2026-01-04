@@ -7,13 +7,13 @@ package com.teambind.placeinfoserver.place.domain.enums;
 public enum RegistrationStatus {
 	REGISTERED("등록 업체"),
 	UNREGISTERED("미등록 업체");
-
+	
 	private final String description;
-
+	
 	RegistrationStatus(String description) {
 		this.description = description;
 	}
-
+	
 	public String getDescription() {
 		return description;
 	}

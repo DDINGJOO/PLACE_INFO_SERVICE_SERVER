@@ -19,30 +19,30 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 카카오 로컬 API 주소 파싱 전략 테스트
  */
 class KakaoLocalAddressParsingStrategyTest {
-
+	
 	private KakaoLocalAddressParsingStrategy strategy;
 	private ObjectMapper objectMapper;
-
+	
 	@BeforeEach
 	void setUp() {
 		objectMapper = new ObjectMapper();
 		strategy = new KakaoLocalAddressParsingStrategy(objectMapper);
 	}
-
+	
 	@Test
 	@DisplayName("supports() - KAKAO_LOCAL 반환")
 	void supports() {
 		// when
 		AddressSource result = strategy.supports();
-
+		
 		// then
 		assertThat(result).isEqualTo(AddressSource.KAKAO_LOCAL);
 	}
-
+	
 	@Nested
 	@DisplayName("도로명 주소가 있는 경우")
 	class WithRoadAddress {
-
+		
 		@Test
 		@DisplayName("도로명 주소 정보를 우선적으로 파싱")
 		void parse_WithRoadAddress() {
@@ -56,13 +56,13 @@ class KakaoLocalAddressParsingStrategyTest {
 			roadAddress.put("main_building_no", "152");
 			roadAddress.put("building_name", "강남파이낸스센터");
 			roadAddress.put("zone_no", "06236");
-
+			
 			Map<String, Object> address = new HashMap<>();
 			address.put("address_name", "서울 강남구 역삼동 737");
 			address.put("region_1depth_name", "서울");
 			address.put("region_2depth_name", "강남구");
 			address.put("region_3depth_name", "역삼동");
-
+			
 			Map<String, Object> kakaoLocalData = new HashMap<>();
 			kakaoLocalData.put("address_name", "서울 강남구 역삼동 737");
 			kakaoLocalData.put("address_type", "REGION_ADDR");
@@ -70,10 +70,10 @@ class KakaoLocalAddressParsingStrategyTest {
 			kakaoLocalData.put("y", "37.5000354");
 			kakaoLocalData.put("road_address", roadAddress);
 			kakaoLocalData.put("address", address);
-
+			
 			// when
 			AddressRequest result = strategy.parse(kakaoLocalData);
-
+			
 			// then
 			assertThat(result).isNotNull();
 			assertThat(result.getProvince()).isEqualTo("서울");
@@ -83,7 +83,7 @@ class KakaoLocalAddressParsingStrategyTest {
 			assertThat(result.getAddressDetail()).isEqualTo("강남파이낸스센터");
 			assertThat(result.getPostalCode()).isEqualTo("06236");
 		}
-
+		
 		@Test
 		@DisplayName("건물명이 없는 도로명 주소 파싱")
 		void parse_WithRoadAddressWithoutBuildingName() {
@@ -95,24 +95,24 @@ class KakaoLocalAddressParsingStrategyTest {
 			roadAddress.put("region_3depth_name", "역삼동");
 			roadAddress.put("zone_no", "06236");
 			roadAddress.put("building_name", "");
-
+			
 			Map<String, Object> kakaoLocalData = new HashMap<>();
 			kakaoLocalData.put("address_name", "서울 강남구 테헤란로 152");
 			kakaoLocalData.put("road_address", roadAddress);
-
+			
 			// when
 			AddressRequest result = strategy.parse(kakaoLocalData);
-
+			
 			// then
 			assertThat(result.getFullAddress()).isEqualTo("서울 강남구 테헤란로 152");
 			assertThat(result.getAddressDetail()).isEmpty();
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("지번 주소만 있는 경우")
 	class WithAddressOnly {
-
+		
 		@Test
 		@DisplayName("지번 주소 정보로 파싱")
 		void parse_WithAddressOnly() {
@@ -123,16 +123,16 @@ class KakaoLocalAddressParsingStrategyTest {
 			address.put("region_2depth_name", "강릉시");
 			address.put("region_3depth_name", "주문진읍");
 			address.put("b_code", "4215033000");
-
+			
 			Map<String, Object> kakaoLocalData = new HashMap<>();
 			kakaoLocalData.put("address_name", "강원 강릉시 주문진읍 장덕리 123");
 			kakaoLocalData.put("address_type", "REGION");
 			kakaoLocalData.put("address", address);
 			kakaoLocalData.put("road_address", null);
-
+			
 			// when
 			AddressRequest result = strategy.parse(kakaoLocalData);
-
+			
 			// then
 			assertThat(result).isNotNull();
 			assertThat(result.getProvince()).isEqualTo("강원");
@@ -143,11 +143,11 @@ class KakaoLocalAddressParsingStrategyTest {
 			assertThat(result.getPostalCode()).isNull();
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("최소 데이터만 있는 경우")
 	class WithMinimalData {
-
+		
 		@Test
 		@DisplayName("address_name만 있어도 파싱 성공")
 		void parse_WithAddressNameOnly() {
@@ -155,20 +155,20 @@ class KakaoLocalAddressParsingStrategyTest {
 			Map<String, Object> kakaoLocalData = new HashMap<>();
 			kakaoLocalData.put("address_name", "서울 강남구 역삼동 737");
 			kakaoLocalData.put("address_type", "REGION");
-
+			
 			// when
 			AddressRequest result = strategy.parse(kakaoLocalData);
-
+			
 			// then
 			assertThat(result).isNotNull();
 			assertThat(result.getFullAddress()).isEqualTo("서울 강남구 역삼동 737");
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("예외 케이스")
 	class ExceptionCases {
-
+		
 		@Test
 		@DisplayName("null 데이터 파싱 시 예외 발생")
 		void parse_NullData_ThrowsException() {
@@ -177,24 +177,24 @@ class KakaoLocalAddressParsingStrategyTest {
 					.isInstanceOf(AddressParsingException.class)
 					.hasMessageContaining("주소 데이터가 null입니다");
 		}
-
+		
 		@Test
 		@DisplayName("잘못된 형식 데이터 파싱 시 예외 발생")
 		void parse_InvalidFormat_ThrowsException() {
 			// given
 			String invalidData = "잘못된 문자열 데이터";
-
+			
 			// when & then
 			assertThatThrownBy(() -> strategy.parse(invalidData))
 					.isInstanceOf(AddressParsingException.class)
 					.hasMessageContaining("카카오 로컬 API 주소 데이터 파싱에 실패했습니다");
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("실제 API 응답 구조 테스트")
 	class RealApiResponseTest {
-
+		
 		@Test
 		@DisplayName("카카오 로컬 API 실제 응답 구조 파싱")
 		void parse_RealApiResponse() {
@@ -212,7 +212,7 @@ class KakaoLocalAddressParsingStrategyTest {
 			roadAddress.put("zone_no", "22006");
 			roadAddress.put("x", "126.6396003");
 			roadAddress.put("y", "37.3894592");
-
+			
 			Map<String, Object> address = new HashMap<>();
 			address.put("address_name", "인천 연수구 송도동 29-1");
 			address.put("region_1depth_name", "인천");
@@ -226,7 +226,7 @@ class KakaoLocalAddressParsingStrategyTest {
 			address.put("sub_address_no", "1");
 			address.put("x", "126.6396003");
 			address.put("y", "37.3894592");
-
+			
 			Map<String, Object> kakaoLocalData = new HashMap<>();
 			kakaoLocalData.put("address_name", "인천 연수구 송도동 29-1");
 			kakaoLocalData.put("address_type", "REGION_ADDR");
@@ -234,10 +234,10 @@ class KakaoLocalAddressParsingStrategyTest {
 			kakaoLocalData.put("y", "37.3894592");
 			kakaoLocalData.put("road_address", roadAddress);
 			kakaoLocalData.put("address", address);
-
+			
 			// when
 			AddressRequest result = strategy.parse(kakaoLocalData);
-
+			
 			// then
 			assertThat(result.getProvince()).isEqualTo("인천");
 			assertThat(result.getCity()).isEqualTo("연수구");

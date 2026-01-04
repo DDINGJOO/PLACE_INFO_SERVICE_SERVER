@@ -33,7 +33,7 @@ public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, Long> {
 			"WHERE p.id IN :ids " +
 			"AND p.isActive = true")
 	List<PlaceInfo> findAllByIdWithDetails(@Param("ids") Set<Long> ids);
-
+	
 	/**
 	 * 사용자 ID로 본인 등록 공간 목록 조회
 	 * 삭제되지 않은 모든 공간 조회 (활성/비활성 모두 포함)
@@ -51,5 +51,5 @@ public interface PlaceInfoRepository extends JpaRepository<PlaceInfo, Long> {
 			"AND p.deletedAt IS NULL " +
 			"ORDER BY p.createdAt DESC")
 	List<PlaceInfo> findAllByUserIdWithDetails(@Param("userId") String userId);
-
+	
 }

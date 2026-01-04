@@ -20,10 +20,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GetPlacesByUserUseCase {
-
+	
 	private final PlaceInfoRepository placeInfoRepository;
 	private final PlaceMapper placeMapper;
-
+	
 	/**
 	 * 사용자별 업체 조회
 	 * 삭제되지 않은 모든 공간 조회 (활성/비활성 모두 포함)
@@ -33,11 +33,11 @@ public class GetPlacesByUserUseCase {
 	 */
 	public List<PlaceInfoResponse> execute(String userId) {
 		log.info("내 공간 조회: userId={}", userId);
-
+		
 		List<PlaceInfo> places = placeInfoRepository.findAllByUserIdWithDetails(userId);
-
+		
 		log.info("내 공간 조회 완료: userId={}, count={}", userId, places.size());
-
+		
 		return placeMapper.toResponseList(places);
 	}
 }

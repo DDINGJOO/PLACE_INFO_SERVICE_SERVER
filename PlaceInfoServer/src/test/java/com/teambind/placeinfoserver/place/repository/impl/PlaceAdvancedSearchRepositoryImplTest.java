@@ -543,54 +543,54 @@ class PlaceAdvancedSearchRepositoryImplTest {
 	@Nested
 	@DisplayName("등록 상태 필터 테스트")
 	class RegistrationStatusFilterTests {
-
+		
 		@Test
 		@DisplayName("등록 업체만 필터링하여 조회한다")
 		void filterByRegisteredStatus() {
 			// Given
 			PlaceInfo registered = PlaceTestFactory.builder().placeName("등록 업체").registered().build();
 			PlaceInfo unregistered = PlaceTestFactory.builder().placeName("미등록 업체").unregistered().build();
-
+			
 			placeInfoRepository.saveAll(List.of(registered, unregistered));
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.registrationStatus("REGISTERED")
 					.build();
-
+			
 			// When
 			PlaceSearchResponse response = searchRepository.searchWithCursor(request);
-
+			
 			// Then
 			assertThat(response.getItems()).hasSize(1);
 			assertThat(response.getItems().get(0).getPlaceName()).isEqualTo("등록 업체");
 		}
-
+		
 		@Test
 		@DisplayName("미등록 업체만 필터링하여 조회한다")
 		void filterByUnregisteredStatus() {
 			// Given
 			PlaceInfo registered = PlaceTestFactory.builder().placeName("등록 업체").registered().build();
 			PlaceInfo unregistered = PlaceTestFactory.builder().placeName("미등록 업체").unregistered().build();
-
+			
 			placeInfoRepository.saveAll(List.of(registered, unregistered));
 			entityManager.flush();
 			entityManager.clear();
-
+			
 			PlaceSearchRequest request = PlaceRequestFactory.searchRequestBuilder()
 					.registrationStatus("UNREGISTERED")
 					.build();
-
+			
 			// When
 			PlaceSearchResponse response = searchRepository.searchWithCursor(request);
-
+			
 			// Then
 			assertThat(response.getItems()).hasSize(1);
 			assertThat(response.getItems().get(0).getPlaceName()).isEqualTo("미등록 업체");
 		}
 	}
-
+	
 	@Nested
 	@DisplayName("엣지 케이스 테스트")
 	class EdgeCaseTests {

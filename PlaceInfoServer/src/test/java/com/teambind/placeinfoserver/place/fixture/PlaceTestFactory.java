@@ -298,22 +298,22 @@ public class PlaceTestFactory {
 			this.approvalStatus = status;
 			return this;
 		}
-
+		
 		public PlaceInfoBuilder registrationStatus(RegistrationStatus status) {
 			this.registrationStatus = status;
 			return this;
 		}
-
+		
 		public PlaceInfoBuilder registered() {
 			this.registrationStatus = RegistrationStatus.REGISTERED;
 			return this;
 		}
-
+		
 		public PlaceInfoBuilder unregistered() {
 			this.registrationStatus = RegistrationStatus.UNREGISTERED;
 			return this;
 		}
-
+		
 		public PlaceInfoBuilder location(Double latitude, Double longitude) {
 			this.latitude = latitude;
 			this.longitude = longitude;

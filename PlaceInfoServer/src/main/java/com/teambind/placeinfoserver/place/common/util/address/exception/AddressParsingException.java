@@ -16,11 +16,11 @@ public class AddressParsingException extends RuntimeException {
 	public static AddressParsingException kakao(Throwable cause) {
 		return new AddressParsingException("카카오 우편번호 주소 데이터 파싱에 실패했습니다.", cause);
 	}
-
+	
 	public static AddressParsingException kakaoLocal(Throwable cause) {
 		return new AddressParsingException("카카오 로컬 API 주소 데이터 파싱에 실패했습니다.", cause);
 	}
-
+	
 	public static AddressParsingException naver(Throwable cause) {
 		return new AddressParsingException("네이버 주소 데이터 파싱에 실패했습니다.", cause);
 	}

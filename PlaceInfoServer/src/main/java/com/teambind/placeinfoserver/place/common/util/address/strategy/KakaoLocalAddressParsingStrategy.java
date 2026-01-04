@@ -17,20 +17,20 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class KakaoLocalAddressParsingStrategy implements AddressParsingStrategy {
-
+	
 	private final ObjectMapper objectMapper;
-
+	
 	@Override
 	public AddressSource supports() {
 		return AddressSource.KAKAO_LOCAL;
 	}
-
+	
 	@Override
 	public AddressRequest parse(Object addressData) {
 		if (addressData == null) {
 			throw AddressParsingException.nullData();
 		}
-
+		
 		try {
 			KakaoLocalAddressRequest kakaoLocalAddress = objectMapper.convertValue(
 					addressData,

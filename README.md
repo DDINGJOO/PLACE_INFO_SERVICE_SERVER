@@ -568,7 +568,11 @@ erDiagram
   "longitude": 126.9780,
   "radius": 3000,
   "keyword": "연습실",
-  "keywordIds": [1, 2, 3],
+  "keywordIds": [
+    1,
+    2,
+    3
+  ],
   "parkingAvailable": true,
   "cursor": null,
   "size": 10

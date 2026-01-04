@@ -157,7 +157,7 @@ public class PlaceSearchController {
 			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("지역 검색: {}/{}/{}", province, city, district);
-
+		
 		PlaceSearchRequest searchRequest = PlaceSearchRequest.builder()
 				.province(province)
 				.city(city)
@@ -185,7 +185,7 @@ public class PlaceSearchController {
 			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("인기 장소 조회: {} 건", size);
-
+		
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.RATING)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)
@@ -211,7 +211,7 @@ public class PlaceSearchController {
 			@RequestParam(required = false) String registrationStatus
 	) {
 		log.info("최신 장소 조회: {} 건", size);
-
+		
 		PlaceSearchRequest request = PlaceSearchRequest.builder()
 				.sortBy(PlaceSearchRequest.SortBy.CREATED_AT)
 				.sortDirection(PlaceSearchRequest.SortDirection.DESC)

@@ -53,21 +53,21 @@ CREATE
 -- 3.1 Place Info (Aggregate Root)
 CREATE TABLE place_info
 (
-    id              BIGINT PRIMARY KEY, -- Snowflake ID (Long type)
-    user_id         VARCHAR(100) NOT NULL,
-    place_name      VARCHAR(100) NOT NULL,
-    description     VARCHAR(500),
-    category        VARCHAR(50),
-    place_type      VARCHAR(50),
+    id           BIGINT PRIMARY KEY, -- Snowflake ID (Long type)
+    user_id      VARCHAR(100) NOT NULL,
+    place_name   VARCHAR(100) NOT NULL,
+    description  VARCHAR(500),
+    category     VARCHAR(50),
+    place_type   VARCHAR(50),
     is_active           BOOLEAN      NOT NULL DEFAULT false,
     approval_status     VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
     registration_status VARCHAR(20)  NOT NULL DEFAULT 'UNREGISTERED',
     rating_average      DOUBLE PRECISION,
-    review_count    INTEGER               DEFAULT 0,
-    deleted_at      TIMESTAMP,
-    deleted_by      VARCHAR(100),
-    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    review_count INTEGER               DEFAULT 0,
+    deleted_at   TIMESTAMP,
+    deleted_by   VARCHAR(100),
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3.2 Keywords (Master Data)

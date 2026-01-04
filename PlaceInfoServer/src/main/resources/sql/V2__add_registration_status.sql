@@ -24,7 +24,8 @@ CREATE INDEX idx_place_info_registration_created
     ON place_info (registration_status DESC, created_at DESC);
 
 -- 6. 컬럼 코멘트 추가
-COMMENT ON COLUMN place_info.registration_status IS '업체 등록 상태 (REGISTERED: 정식 등록, UNREGISTERED: 미등록)';
+COMMENT
+ON COLUMN place_info.registration_status IS '업체 등록 상태 (REGISTERED: 정식 등록, UNREGISTERED: 미등록)';
 
 -- =============================================
 -- End of Migration

@@ -42,12 +42,12 @@ public class LocationSearchRequest {
 	@Min(value = 1, message = "페이지 크기는 최소 1 이상이어야 합니다")
 	@Max(value = 100, message = "페이지 크기는 최대 100을 초과할 수 없습니다")
 	private Integer size = 20; // 기본값 20개
-
+	
 	/**
 	 * 등록 상태 필터 (REGISTERED, UNREGISTERED)
 	 */
 	private String registrationStatus;
-
+	
 	/**
 	 * 반경 값 반환 (null인 경우 기본값 5000m)
 	 */

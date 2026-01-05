@@ -9,6 +9,7 @@ import com.teambind.placeinfoserver.place.domain.enums.AppType;
 import com.teambind.placeinfoserver.place.domain.enums.PlaceOperationType;
 import com.teambind.placeinfoserver.place.dto.request.PlaceLocationRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
+import com.teambind.placeinfoserver.place.dto.request.PlaceUpdateRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.repository.PlaceInfoRepository;
 import com.teambind.placeinfoserver.place.service.command.PlaceLocationUpdateService;
@@ -16,7 +17,12 @@ import com.teambind.placeinfoserver.place.service.usecase.command.ActivatePlaceU
 import com.teambind.placeinfoserver.place.service.usecase.command.DeactivatePlaceUseCase;
 import com.teambind.placeinfoserver.place.service.usecase.command.DeletePlaceUseCase;
 import com.teambind.placeinfoserver.place.service.usecase.command.RegisterPlaceUseCase;
+import com.teambind.placeinfoserver.place.service.usecase.command.UpdatePlaceUseCase;
 import com.teambind.placeinfoserver.place.service.usecase.common.IdParser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +38,14 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/places")
+@Tag(name = "Place Register", description = "공간 등록/수정/삭제 API (PLACE_MANAGER 전용)")
 public class PlaceRegisterController {
 	
 	private static final String HEADER_APP_TYPE = "X-App-Type";
 	private static final String HEADER_USER_ID = "X-User-Id";
 	
 	private final RegisterPlaceUseCase registerPlaceUseCase;
+	private final UpdatePlaceUseCase updatePlaceUseCase;
 	private final DeletePlaceUseCase deletePlaceUseCase;
 	private final ActivatePlaceUseCase activatePlaceUseCase;
 	private final DeactivatePlaceUseCase deactivatePlaceUseCase;
@@ -103,11 +111,33 @@ public class PlaceRegisterController {
 		validateRequiredHeader(userId, HEADER_USER_ID);
 		validatePlaceManagerApp(parseAppType(appTypeHeader));
 		validateRegisterOwnership(req.getPlaceOwnerId(), userId);
-		
+
 		PlaceInfoResponse response = registerPlaceUseCase.execute(req);
 		return ResponseEntity.ok(response);
 	}
-	
+
+	@PutMapping("/{placeId}")
+	@Operation(
+			summary = "업체 정보 수정",
+			description = "업체의 기본 정보, 연락처, 주차, 키워드를 수정합니다. 위치 정보는 별도 API를 사용해주세요."
+	)
+	@ApiResponse(responseCode = "200", description = "수정 성공")
+	@ApiResponse(responseCode = "400", description = "잘못된 요청")
+	@ApiResponse(responseCode = "403", description = "권한 없음 (본인 소유 업체만 수정 가능)")
+	@ApiResponse(responseCode = "404", description = "존재하지 않는 업체")
+	public ResponseEntity<PlaceInfoResponse> update(
+			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,
+			@RequestHeader(value = "X-User-Id", required = false) String userId,
+			@Parameter(description = "공간 ID", required = true) @PathVariable(value = "placeId") String placeId,
+			@Valid @RequestBody PlaceUpdateRequest req) {
+		validateRequiredHeader(userId, HEADER_USER_ID);
+		validatePlaceManagerApp(parseAppType(appTypeHeader));
+		validateOwnership(placeId, userId);
+
+		PlaceInfoResponse response = updatePlaceUseCase.execute(placeId, req);
+		return ResponseEntity.ok(response);
+	}
+
 	@PatchMapping("/{placeId}")
 	public ResponseEntity<Void> updatePlaceStatus(
 			@RequestHeader(value = "X-App-Type", required = false) String appTypeHeader,

@@ -323,12 +323,13 @@ public class PlaceMapper {
 	
 	/**
 	 * PlaceUpdateRequest로 PlaceInfo 업데이트
+	 * Location은 별도 API로 처리하므로 제외
 	 */
 	public void updateEntity(PlaceInfo entity, PlaceUpdateRequest request) {
 		if (request == null || entity == null) {
 			return;
 		}
-		
+
 		// 기본 정보 업데이트
 		if (request.getPlaceName() != null) {
 			entity.updatePlaceName(request.getPlaceName());
@@ -342,17 +343,12 @@ public class PlaceMapper {
 		if (request.getPlaceType() != null) {
 			entity.updatePlaceType(request.getPlaceType());
 		}
-		
+
 		// Contact 업데이트
 		if (request.getContact() != null) {
 			updateContactEntity(entity.getContact(), request.getContact());
 		}
-		
-		// Location 업데이트
-		if (request.getLocation() != null) {
-			updateLocationEntity(entity.getLocation(), request.getLocation());
-		}
-		
+
 		// Parking 업데이트
 		if (request.getParking() != null) {
 			updateParkingEntity(entity.getParking(), request.getParking());

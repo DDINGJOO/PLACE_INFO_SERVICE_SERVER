@@ -87,6 +87,8 @@ flowchart TB
     subgraph Presentation["Presentation Layer"]
         CTRL[Controllers]
         DTO[Request/Response DTOs]
+        AOP["AOP (PlaceManagerAspect)"]
+        ANNO["Annotations (@RequirePlaceManager, @ValidateOwnership)"]
     end
 
     subgraph Application["Application Layer (CQRS)"]
@@ -109,7 +111,9 @@ flowchart TB
         BROKER[Kafka]
     end
 
-    CTRL --> CMD
+    CTRL --> ANNO
+    ANNO --> AOP
+    AOP --> CMD
     CTRL --> QRY
     CMD --> AGG
     QRY --> REPO
@@ -127,6 +131,7 @@ flowchart TB
 sequenceDiagram
     participant C as Client
     participant CTRL as Controller
+    participant AOP as PlaceManagerAspect
     participant UC as RegisterPlaceUseCase
     participant FACTORY as PlaceInfoFactory
     participant REPO as Repository
@@ -134,8 +139,9 @@ sequenceDiagram
     participant K as Kafka
     C ->> CTRL: POST /api/v1/places
     Note over C, CTRL: X-App-Type: PLACE_MANAGER<br/>X-User-Id: {userId}
-    CTRL ->> CTRL: 헤더 검증 (AppType, UserId)
-    CTRL ->> UC: execute(request)
+    CTRL ->> AOP: @RequirePlaceManager 트리거
+    AOP ->> AOP: 헤더 검증 (AppType, UserId)
+    AOP ->> UC: execute(request)
     UC ->> FACTORY: create(request)
     FACTORY ->> FACTORY: Snowflake ID 생성
     FACTORY -->> UC: PlaceInfo Aggregate
@@ -579,7 +585,79 @@ erDiagram
 }
 ```
 
-### 4.5 배치 상세 조회
+### 4.5 업체 정보 수정
+
+#### PUT /api/v1/places/{placeId}
+
+**업체 정보 수정 (위치 정보 제외)**
+
+**Headers**
+
+| 헤더         | 필수 | 설명                  |
+|------------|----|---------------------|
+| X-App-Type | Y  | PLACE_MANAGER       |
+| X-User-Id  | Y  | 요청자 사용자 ID (소유자 검증) |
+
+**Request**
+
+```json
+{
+  "placeName": "수정된 연습실 이름",
+  "description": "수정된 설명입니다.",
+  "category": "스튜디오",
+  "placeType": "음악",
+  "contact": {
+    "phoneNumber": "02-9999-8888",
+    "email": "updated@example.com",
+    "websites": [
+      "https://updated.com"
+    ],
+    "socialLinks": {
+      "instagram": "https://instagram.com/updated"
+    }
+  },
+  "parking": {
+    "parkingType": "FREE",
+    "parkingDescription": "무료 주차 가능"
+  },
+  "keywordIds": [
+    1,
+    2,
+    3
+  ]
+}
+```
+
+**Response**
+
+```json
+{
+  "id": "1234567890123456789",
+  "userId": "user123",
+  "placeName": "수정된 연습실 이름",
+  "description": "수정된 설명입니다.",
+  ...
+}
+```
+
+**상태 코드**
+
+| 코드  | 설명          |
+|-----|-------------|
+| 200 | 수정 성공       |
+| 400 | 잘못된 요청      |
+| 403 | 소유자가 아님     |
+| 404 | 장소를 찾을 수 없음 |
+
+**비고**
+
+- 위치 정보는 `PUT /api/v1/places/{placeId}/locations` API를 사용
+- keywordIds가 null이면 기존 키워드 유지, 빈 배열이면 모두 제거
+- 키워드는 최대 10개까지 등록 가능
+
+---
+
+### 4.6 배치 상세 조회
 
 #### POST /api/v1/places/search/batch/details
 
@@ -596,7 +674,7 @@ erDiagram
 
 **제한**: 최대 50개 ID
 
-### 4.6 장소 상태 변경
+### 4.7 장소 상태 변경
 
 #### PATCH /api/v1/places/{placeId}
 
@@ -616,7 +694,7 @@ erDiagram
 
 **Response**: 204 No Content
 
-### 4.7 장소 삭제
+### 4.8 장소 삭제
 
 #### DELETE /api/v1/places/{placeId}
 
@@ -629,7 +707,7 @@ erDiagram
 
 **Response**: 204 No Content (Soft Delete)
 
-### 4.8 위치 수정
+### 4.9 위치 수정
 
 #### PUT /api/v1/places/{placeId}/locations
 
@@ -654,7 +732,7 @@ erDiagram
 }
 ```
 
-### 4.9 키워드 조회
+### 4.10 키워드 조회
 
 #### GET /api/v1/keywords
 
@@ -672,7 +750,7 @@ erDiagram
 }
 ```
 
-### 4.10 헬스 체크
+### 4.11 헬스 체크
 
 ```
 GET /health
@@ -766,13 +844,77 @@ stateDiagram-v2
 | 장소 삭제 | X       | O (소유자만)      |
 | 상태 변경 | X       | O (소유자만)      |
 
-### 6.3 소유자 검증
+### 6.3 AOP 기반 검증
+
+Command API의 헤더 검증과 소유권 검증을 **Spring AOP**를 활용하여 횡단 관심사로 분리하였다.
+
+#### 커스텀 어노테이션
+
+| 어노테이션                  | 설명                        | 검증 항목                    |
+|------------------------|---------------------------|--------------------------|
+| `@RequirePlaceManager` | PLACE_MANAGER 앱 전용 API 표시 | X-App-Type, X-User-Id 헤더 |
+| `@ValidateOwnership`   | 리소스 소유자 검증                | placeId의 소유자와 요청자 일치     |
+
+#### 어노테이션 사용 예시
+
+```java
+
+@PutMapping("/{placeId}")
+@RequirePlaceManager                    // 헤더 검증
+@ValidateOwnership                       // 소유권 검증
+public ResponseEntity<PlaceInfoResponse> update(
+		@PathVariable String placeId,
+		@RequestBody PlaceUpdateRequest req) {
+	// 비즈니스 로직만 집중
+}
+```
+
+#### PlaceManagerAspect 동작
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant CTRL as Controller
+    participant AOP as PlaceManagerAspect
+    participant UC as UseCase
+    participant REPO as Repository
+    C ->> CTRL: PUT /api/v1/places/{placeId}
+    Note over C, CTRL: X-App-Type: PLACE_MANAGER<br/>X-User-Id: user123
+    CTRL ->> AOP: @RequirePlaceManager 트리거
+    AOP ->> AOP: 헤더 검증 (X-App-Type, X-User-Id)
+    alt 헤더 검증 실패
+        AOP -->> C: 400 Bad Request / 403 Forbidden
+    end
+
+    AOP ->> AOP: @ValidateOwnership 트리거
+    AOP ->> REPO: findById(placeId)
+    REPO -->> AOP: PlaceInfo
+    AOP ->> AOP: 소유권 검증 (userId 일치)
+    alt 소유권 검증 실패
+        AOP -->> C: 403 Forbidden
+    end
+
+    AOP ->> UC: execute(request)
+    UC -->> CTRL: Response
+    CTRL -->> C: 200 OK
+```
+
+#### AOP 적용 효과
+
+| 항목       | Before                        | After                                |
+|----------|-------------------------------|--------------------------------------|
+| 중복 코드    | 각 컨트롤러에 검증 메서드 반복             | 어노테이션 한 줄로 적용                        |
+| 레이어 책임   | Controller에서 Repository 직접 참조 | Aspect에서 검증, Controller는 UseCase만 호출 |
+| 단일 책임 원칙 | 검증 + 비즈니스 로직 혼재               | 검증과 비즈니스 로직 분리                       |
+| 유지보수     | 검증 로직 변경 시 전체 컨트롤러 수정         | Aspect만 수정                           |
+
+#### 검증 흐름
 
 Command API (등록/수정/삭제)는 다음 검증을 수행:
 
-1. `X-App-Type` 헤더가 `PLACE_MANAGER`인지 확인
-2. `X-User-Id` 헤더가 존재하는지 확인
-3. 요청자 ID가 장소 소유자(userId)와 일치하는지 확인
+1. **@RequirePlaceManager**: `X-App-Type`이 `PLACE_MANAGER`인지 확인
+2. **@RequirePlaceManager**: `X-User-Id` 헤더가 존재하는지 확인
+3. **@ValidateOwnership**: 요청자 ID가 장소 소유자(userId)와 일치하는지 확인
 
 ### 6.4 검색 규칙
 
@@ -1155,7 +1297,12 @@ src/main/java/com/teambind/placeinfoserver/place/
 │   ├── PlaceRegisterController.java      # Command API
 │   ├── PlaceSearchController.java        # Search API
 │   ├── KeywordController.java            # Keyword API
-│   └── AdminController.java              # Admin API
+│   ├── AdminController.java              # Admin API
+│   ├── annotation/                       # 커스텀 어노테이션
+│   │   ├── RequirePlaceManager.java      # PLACE_MANAGER 앱 필수
+│   │   └── ValidateOwnership.java        # 소유권 검증 필수
+│   └── aspect/                           # AOP Aspect
+│       └── PlaceManagerAspect.java       # 헤더/소유권 검증 Aspect
 │
 ├── service/
 │   ├── usecase/                          # CQRS UseCase Layer
@@ -1266,6 +1413,6 @@ src/main/java/com/teambind/placeinfoserver/place/
 
 ---
 
-**버전**: 1.1.0
-**최종 업데이트**: 2025-12-29
+**버전**: 1.2.0
+**최종 업데이트**: 2026-01-05
 **팀**: TeamBind Development Team

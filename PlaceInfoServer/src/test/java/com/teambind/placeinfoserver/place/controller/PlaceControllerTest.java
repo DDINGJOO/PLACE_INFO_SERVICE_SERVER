@@ -118,14 +118,14 @@ class PlaceControllerTest extends BaseIntegrationTest {
 		
 		@Test
 		@Order(6)
-		@DisplayName("내 공간 조회 - 잘못된 앱 타입 시 400")
+		@DisplayName("내 공간 조회 - 잘못된 앱 타입 시 403")
 		void getMyPlaces_InvalidAppType() throws Exception {
 			mockMvc.perform(get("/api/v1/places/my")
 							.header(HEADER_APP_TYPE, "INVALID_TYPE")
 							.header(HEADER_USER_ID, testUserId))
 					.andDo(print())
-					.andExpect(status().isBadRequest())
-					.andExpect(jsonPath("$.code").value("VALIDATION_003"));
+					.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.code").value("AUTH_004"));
 		}
 		
 		@Test

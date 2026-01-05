@@ -20,7 +20,10 @@ public interface PlaceRegisterControllerSwagger {
     @ApiResponse(responseCode = "200", description = "등록 성공")
     @ApiResponse(responseCode = "400", description = "잘못된 요청")
     @ApiResponse(responseCode = "403", description = "권한 없음")
-    ResponseEntity<PlaceInfoResponse> register(String userId, PlaceRegisterRequest req);
+    ResponseEntity<PlaceInfoResponse> register(
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId,
+            PlaceRegisterRequest req);
 
     @Operation(summary = "업체 정보 수정", description = "업체의 기본 정보, 연락처, 주차, 키워드를 수정합니다. 위치 정보는 별도 API를 사용해주세요.")
     @ApiResponse(responseCode = "200", description = "수정 성공")
@@ -28,6 +31,8 @@ public interface PlaceRegisterControllerSwagger {
     @ApiResponse(responseCode = "403", description = "권한 없음 (본인 소유 업체만 수정 가능)")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 업체")
     ResponseEntity<PlaceInfoResponse> update(
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "공간 ID", required = true) String placeId,
             PlaceUpdateRequest req);
 
@@ -37,6 +42,8 @@ public interface PlaceRegisterControllerSwagger {
     @ApiResponse(responseCode = "403", description = "권한 없음")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 업체")
     ResponseEntity<Void> updatePlaceStatus(
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "공간 ID", required = true) String placeId,
             @Parameter(description = "작업 타입", required = true) PlaceOperationType type,
             @Parameter(description = "활성화 여부", required = true) boolean activate);
@@ -47,6 +54,8 @@ public interface PlaceRegisterControllerSwagger {
     @ApiResponse(responseCode = "403", description = "권한 없음")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 업체")
     ResponseEntity<Map<String, String>> updateLocation(
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "공간 ID", required = true) String placeId,
             PlaceLocationRequest req);
 
@@ -55,6 +64,7 @@ public interface PlaceRegisterControllerSwagger {
     @ApiResponse(responseCode = "403", description = "권한 없음")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 업체")
     ResponseEntity<Void> delete(
-            String userId,
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "공간 ID", required = true) String placeId);
 }

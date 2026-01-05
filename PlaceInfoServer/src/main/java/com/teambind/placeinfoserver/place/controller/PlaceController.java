@@ -1,7 +1,8 @@
 package com.teambind.placeinfoserver.place.controller;
 
-import com.teambind.placeinfoserver.place.controller.annotation.RequirePlaceManager;
+import com.teambind.placeinfoserver.place.common.exception.application.ForbiddenException;
 import com.teambind.placeinfoserver.place.controller.swagger.PlaceControllerSwagger;
+import com.teambind.placeinfoserver.place.domain.enums.AppType;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.service.usecase.query.GetPlaceDetailUseCase;
 import com.teambind.placeinfoserver.place.service.usecase.query.GetPlacesByUserUseCase;
@@ -23,14 +24,15 @@ public class PlaceController implements PlaceControllerSwagger {
 
 	@Override
 	@GetMapping("/my")
-	@RequirePlaceManager
 	public ResponseEntity<List<PlaceInfoResponse>> getMyPlaces(
-			@RequestHeader(value = "X-User-Id") String userId) {
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId) {
+		validatePlaceManagerApp(appType);
+
 		log.info("내 공간 목록 조회 요청: userId={}", userId);
-
 		List<PlaceInfoResponse> response = getPlacesByUserUseCase.execute(userId);
-
 		log.info("내 공간 목록 조회 완료: userId={}, count={}", userId, response.size());
+
 		return ResponseEntity.ok(response);
 	}
 
@@ -38,10 +40,15 @@ public class PlaceController implements PlaceControllerSwagger {
 	@GetMapping("/{placeId}")
 	public ResponseEntity<PlaceInfoResponse> getPlaceDetail(@PathVariable String placeId) {
 		log.info("공간 상세 조회 요청: placeId={}", placeId);
-
 		PlaceInfoResponse response = getPlaceDetailUseCase.execute(placeId);
-
 		log.info("공간 상세 조회 완료: placeId={}, placeName={}", placeId, response.getPlaceName());
+
 		return ResponseEntity.ok(response);
+	}
+
+	private void validatePlaceManagerApp(String appType) {
+		if (!AppType.PLACE_MANAGER.name().equals(appType)) {
+			throw ForbiddenException.placeManagerOnly();
+		}
 	}
 }

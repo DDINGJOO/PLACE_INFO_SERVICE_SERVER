@@ -14,9 +14,10 @@ public interface PlaceControllerSwagger {
 
     @Operation(summary = "내 공간 목록 조회", description = "본인이 등록한 공간 목록을 조회합니다 (PLACE_MANAGER 앱 전용)")
     @ApiResponse(responseCode = "200", description = "조회 성공")
-    @ApiResponse(responseCode = "400", description = "필수 헤더 누락")
     @ApiResponse(responseCode = "403", description = "PLACE_MANAGER 앱만 접근 가능")
-    ResponseEntity<List<PlaceInfoResponse>> getMyPlaces(String userId);
+    ResponseEntity<List<PlaceInfoResponse>> getMyPlaces(
+            @Parameter(hidden = true) String appType,
+            @Parameter(hidden = true) String userId);
 
     @Operation(summary = "공간 상세 조회", description = "ID로 공간의 상세 정보를 조회합니다")
     @ApiResponse(responseCode = "200", description = "조회 성공")

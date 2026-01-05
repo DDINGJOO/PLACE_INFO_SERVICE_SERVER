@@ -38,7 +38,7 @@ public class AdminController implements AdminControllerSwagger {
 	@Override
 	@DeleteMapping("/{placeId}")
 	public ResponseEntity<Void> delete(@PathVariable(value = "placeId") String placeId) {
-		deletePlaceUseCase.execute(placeId, "ADMIN");
+		deletePlaceUseCase.executeAsAdmin(placeId, "ADMIN");
 		return ResponseEntity.noContent().build();
 	}
 }

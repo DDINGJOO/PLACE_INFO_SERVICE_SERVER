@@ -329,7 +329,7 @@ public class PlaceMapper {
 		if (request == null || entity == null) {
 			return;
 		}
-
+		
 		// 기본 정보 업데이트
 		if (request.getPlaceName() != null) {
 			entity.updatePlaceName(request.getPlaceName());
@@ -343,12 +343,12 @@ public class PlaceMapper {
 		if (request.getPlaceType() != null) {
 			entity.updatePlaceType(request.getPlaceType());
 		}
-
+		
 		// Contact 업데이트
 		if (request.getContact() != null) {
 			updateContactEntity(entity.getContact(), request.getContact());
 		}
-
+		
 		// Parking 업데이트
 		if (request.getParking() != null) {
 			updateParkingEntity(entity.getParking(), request.getParking());

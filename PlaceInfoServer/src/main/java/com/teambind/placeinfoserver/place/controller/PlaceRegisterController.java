@@ -9,11 +9,7 @@ import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceUpdateRequest;
 import com.teambind.placeinfoserver.place.dto.response.PlaceInfoResponse;
 import com.teambind.placeinfoserver.place.service.command.PlaceLocationUpdateService;
-import com.teambind.placeinfoserver.place.service.usecase.command.ActivatePlaceUseCase;
-import com.teambind.placeinfoserver.place.service.usecase.command.DeactivatePlaceUseCase;
-import com.teambind.placeinfoserver.place.service.usecase.command.DeletePlaceUseCase;
-import com.teambind.placeinfoserver.place.service.usecase.command.RegisterPlaceUseCase;
-import com.teambind.placeinfoserver.place.service.usecase.command.UpdatePlaceUseCase;
+import com.teambind.placeinfoserver.place.service.usecase.command.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,14 +31,14 @@ import java.util.Map;
 @RequestMapping("/api/v1/places")
 @Tag(name = "Place Register", description = "공간 등록/수정/삭제 API (PLACE_MANAGER 전용)")
 public class PlaceRegisterController {
-
+	
 	private final RegisterPlaceUseCase registerPlaceUseCase;
 	private final UpdatePlaceUseCase updatePlaceUseCase;
 	private final DeletePlaceUseCase deletePlaceUseCase;
 	private final ActivatePlaceUseCase activatePlaceUseCase;
 	private final DeactivatePlaceUseCase deactivatePlaceUseCase;
 	private final PlaceLocationUpdateService locationService;
-
+	
 	@PostMapping
 	@RequirePlaceManager
 	@Operation(summary = "업체 등록", description = "새로운 업체를 등록합니다")
@@ -53,11 +49,11 @@ public class PlaceRegisterController {
 			@RequestHeader(value = "X-User-Id") String userId,
 			@Valid @RequestBody PlaceRegisterRequest req) {
 		validateRegisterOwnership(req.getPlaceOwnerId(), userId);
-
+		
 		PlaceInfoResponse response = registerPlaceUseCase.execute(req);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	@PutMapping("/{placeId}")
 	@RequirePlaceManager
 	@ValidateOwnership
@@ -72,7 +68,7 @@ public class PlaceRegisterController {
 		PlaceInfoResponse response = updatePlaceUseCase.execute(placeId, req);
 		return ResponseEntity.ok(response);
 	}
-
+	
 	@PatchMapping("/{placeId}")
 	@RequirePlaceManager
 	@ValidateOwnership
@@ -93,10 +89,10 @@ public class PlaceRegisterController {
 			}
 			return ResponseEntity.noContent().build();
 		}
-
+		
 		return ResponseEntity.badRequest().build();
 	}
-
+	
 	@PutMapping("/{placeId}/locations")
 	@RequirePlaceManager
 	@ValidateOwnership
@@ -111,7 +107,7 @@ public class PlaceRegisterController {
 		String responseId = locationService.updateLocation(placeId, req);
 		return ResponseEntity.ok(Map.of("placeId", responseId));
 	}
-
+	
 	@DeleteMapping("/{placeId}")
 	@RequirePlaceManager
 	@ValidateOwnership
@@ -125,7 +121,7 @@ public class PlaceRegisterController {
 		deletePlaceUseCase.execute(placeId, userId);
 		return ResponseEntity.noContent().build();
 	}
-
+	
 	/**
 	 * 등록 요청의 소유주 ID와 헤더의 사용자 ID 일치 검증
 	 */

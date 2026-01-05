@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidateOwnership {
-
+	
 	/**
 	 * placeId 파라미터명 (기본값: "placeId")
 	 */

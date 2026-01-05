@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -68,11 +69,28 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleForbiddenException(
 			ForbiddenException ex, HttpServletRequest request) {
 		log.warn("ForbiddenException: {}", ex.getMessage());
-		
+
 		ErrorResponse errorResponse = ErrorResponse.of(ex, request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
 	}
-	
+
+	/**
+	 * 필수 헤더 누락 처리
+	 */
+	@ExceptionHandler(MissingRequestHeaderException.class)
+	public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+			MissingRequestHeaderException ex, HttpServletRequest request) {
+		log.warn("MissingRequestHeaderException: {}", ex.getHeaderName());
+
+		ErrorResponse errorResponse = ErrorResponse.of(
+				HttpStatus.BAD_REQUEST.value(),
+				"AUTH_005",
+				"Required header is missing: " + ex.getHeaderName(),
+				request.getRequestURI()
+		);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
 	/**
 	 * 기존 CustomException 하위 호환성 유지
 	 */

@@ -54,14 +54,15 @@ class DeletePlaceUseCaseTest extends BaseIntegrationTest {
 			PlaceInfo existingPlace = PlaceTestFactory.createPlaceInfo();
 			placeInfoRepository.save(existingPlace);
 			Long placeId = existingPlace.getId();
+			String ownerId = existingPlace.getUserId();
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// When
-			deletePlaceUseCase.execute(String.valueOf(placeId), "OWNER");
+			deletePlaceUseCase.execute(String.valueOf(placeId), ownerId);
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// Then - @Where 어노테이션으로 인해 soft-deleted 엔티티는 조회되지 않음
 			// 삭제된 업체는 findById로 조회할 수 없음을 검증
 			assertThat(placeInfoRepository.findById(placeId)).isEmpty();
@@ -87,12 +88,12 @@ class DeletePlaceUseCaseTest extends BaseIntegrationTest {
 			Long placeId = existingPlace.getId();
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// When
-			deletePlaceUseCase.execute(String.valueOf(placeId), "ADMIN");
+			deletePlaceUseCase.executeAsAdmin(String.valueOf(placeId), "ADMIN");
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// Then - 삭제된 업체는 조회할 수 없음
 			assertThat(placeInfoRepository.findById(placeId)).isEmpty();
 		}
@@ -104,14 +105,15 @@ class DeletePlaceUseCaseTest extends BaseIntegrationTest {
 			PlaceInfo existingPlace = PlaceTestFactory.createPlaceInfo();
 			placeInfoRepository.save(existingPlace);
 			Long placeId = existingPlace.getId();
+			String ownerId = existingPlace.getUserId();
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// When
-			deletePlaceUseCase.execute(String.valueOf(placeId), "OWNER");
+			deletePlaceUseCase.execute(String.valueOf(placeId), ownerId);
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// Then - 삭제된 업체는 조회할 수 없음
 			assertThat(placeInfoRepository.findById(placeId)).isEmpty();
 		}
@@ -133,15 +135,17 @@ class DeletePlaceUseCaseTest extends BaseIntegrationTest {
 			// Given
 			PlaceInfo existingPlace = PlaceTestFactory.createPlaceInfo();
 			placeInfoRepository.save(existingPlace);
+			Long placeId = existingPlace.getId();
+			String ownerId = existingPlace.getUserId();
 			entityManager.flush();
 			entityManager.clear();
-			
-			deletePlaceUseCase.execute(String.valueOf(existingPlace.getId()), "OWNER");
+
+			deletePlaceUseCase.execute(String.valueOf(placeId), ownerId);
 			entityManager.flush();
 			entityManager.clear();
-			
+
 			// When & Then - @Where 어노테이션으로 인해 삭제된 엔티티는 조회되지 않음
-			assertThatThrownBy(() -> deletePlaceUseCase.execute(String.valueOf(existingPlace.getId()), "OWNER"))
+			assertThatThrownBy(() -> deletePlaceUseCase.execute(String.valueOf(placeId), ownerId))
 					.isInstanceOf(PlaceNotFoundException.class);
 		}
 	}

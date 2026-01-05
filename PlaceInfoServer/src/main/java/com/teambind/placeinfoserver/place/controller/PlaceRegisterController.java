@@ -1,9 +1,8 @@
 package com.teambind.placeinfoserver.place.controller;
 
 import com.teambind.placeinfoserver.place.common.exception.application.ForbiddenException;
-import com.teambind.placeinfoserver.place.controller.annotation.RequirePlaceManager;
-import com.teambind.placeinfoserver.place.controller.annotation.ValidateOwnership;
 import com.teambind.placeinfoserver.place.controller.swagger.PlaceRegisterControllerSwagger;
+import com.teambind.placeinfoserver.place.domain.enums.AppType;
 import com.teambind.placeinfoserver.place.domain.enums.PlaceOperationType;
 import com.teambind.placeinfoserver.place.dto.request.PlaceLocationRequest;
 import com.teambind.placeinfoserver.place.dto.request.PlaceRegisterRequest;
@@ -32,10 +31,11 @@ public class PlaceRegisterController implements PlaceRegisterControllerSwagger {
 
 	@Override
 	@PostMapping
-	@RequirePlaceManager
 	public ResponseEntity<PlaceInfoResponse> register(
-			@RequestHeader(value = "X-User-Id") String userId,
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId,
 			@Valid @RequestBody PlaceRegisterRequest req) {
+		validatePlaceManagerApp(appType);
 		validateRegisterOwnership(req.getPlaceOwnerId(), userId);
 
 		PlaceInfoResponse response = registerPlaceUseCase.execute(req);
@@ -44,28 +44,32 @@ public class PlaceRegisterController implements PlaceRegisterControllerSwagger {
 
 	@Override
 	@PutMapping("/{placeId}")
-	@RequirePlaceManager
-	@ValidateOwnership
 	public ResponseEntity<PlaceInfoResponse> update(
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId,
 			@PathVariable String placeId,
 			@Valid @RequestBody PlaceUpdateRequest req) {
-		PlaceInfoResponse response = updatePlaceUseCase.execute(placeId, req);
+		validatePlaceManagerApp(appType);
+
+		PlaceInfoResponse response = updatePlaceUseCase.execute(placeId, userId, req);
 		return ResponseEntity.ok(response);
 	}
 
 	@Override
 	@PatchMapping("/{placeId}")
-	@RequirePlaceManager
-	@ValidateOwnership
 	public ResponseEntity<Void> updatePlaceStatus(
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId,
 			@PathVariable String placeId,
 			@RequestParam PlaceOperationType type,
 			@RequestParam boolean activate) {
+		validatePlaceManagerApp(appType);
+
 		if (type == PlaceOperationType.ACTIVATE) {
 			if (activate) {
-				activatePlaceUseCase.execute(placeId);
+				activatePlaceUseCase.execute(placeId, userId);
 			} else {
-				deactivatePlaceUseCase.execute(placeId);
+				deactivatePlaceUseCase.execute(placeId, userId);
 			}
 			return ResponseEntity.noContent().build();
 		}
@@ -75,24 +79,33 @@ public class PlaceRegisterController implements PlaceRegisterControllerSwagger {
 
 	@Override
 	@PutMapping("/{placeId}/locations")
-	@RequirePlaceManager
-	@ValidateOwnership
 	public ResponseEntity<Map<String, String>> updateLocation(
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId,
 			@PathVariable String placeId,
 			@Valid @RequestBody PlaceLocationRequest req) {
-		String responseId = locationService.updateLocation(placeId, req);
+		validatePlaceManagerApp(appType);
+
+		String responseId = locationService.updateLocation(placeId, userId, req);
 		return ResponseEntity.ok(Map.of("placeId", responseId));
 	}
 
 	@Override
 	@DeleteMapping("/{placeId}")
-	@RequirePlaceManager
-	@ValidateOwnership
 	public ResponseEntity<Void> delete(
-			@RequestHeader(value = "X-User-Id") String userId,
+			@RequestHeader("X-App-Type") String appType,
+			@RequestHeader("X-User-Id") String userId,
 			@PathVariable String placeId) {
+		validatePlaceManagerApp(appType);
+
 		deletePlaceUseCase.execute(placeId, userId);
 		return ResponseEntity.noContent().build();
+	}
+
+	private void validatePlaceManagerApp(String appType) {
+		if (!AppType.PLACE_MANAGER.name().equals(appType)) {
+			throw ForbiddenException.placeManagerOnly();
+		}
 	}
 
 	private void validateRegisterOwnership(String requestOwnerId, String userId) {

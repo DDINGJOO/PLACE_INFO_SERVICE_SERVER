@@ -85,8 +85,57 @@ logging:
     org.hibernate.SQL: ${SQL_LOG_LEVEL:-WARN}
     org.hibernate.type.descriptor.sql: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [traceId=%X{traceId:-} spanId=%X{spanId:-}] - %msg%n"
   file:
     name: /var/log/place-info-service/application.log
     max-size: 10MB
     max-history: 30
+
+# ============================================
+# Actuator & Management Endpoints
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    kafka:
+      enabled: true
+
+  # ============================================
+  # Distributed Tracing (Zipkin)
+  # ============================================
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:0.1}
+    propagation:
+      type: b3
+
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://zipkin:9411/api/v2/spans}
+
+  # ============================================
+  # Prometheus Metrics
+  # ============================================
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true

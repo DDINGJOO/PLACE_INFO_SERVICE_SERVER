@@ -34,10 +34,18 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.locationtech.jts:jts-core:1.19.0'
     implementation 'org.hibernate:hibernate-spatial:6.5.2.Final'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'  // .env 파일 자동 로드
+
+    // Distributed Tracing (Micrometer + Zipkin)
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+    // Prometheus Metrics
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'

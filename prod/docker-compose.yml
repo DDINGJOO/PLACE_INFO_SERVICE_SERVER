@@ -86,6 +86,9 @@ services:
       - DB_USERNAME=${DB_USERNAME:-placeuser}
       - DB_PASSWORD=${DB_PASSWORD}
 
+      # JPA DDL Auto (create/update for first deploy, validate after)
+      - DDL_AUTO=${DDL_AUTO:-validate}
+
       # Kafka Configuration (from infra-network)
       - KAFKA_BROKER1=${KAFKA_BROKER1:-kafka1:9091}
       - KAFKA_BROKER2=${KAFKA_BROKER2:-kafka2:9092}

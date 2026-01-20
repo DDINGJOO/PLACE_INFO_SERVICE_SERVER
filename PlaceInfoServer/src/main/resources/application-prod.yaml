@@ -45,7 +45,8 @@ spring:
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: validate
+      # 최초 배포: create 또는 update / 이후: validate
+      ddl-auto: ${DDL_AUTO:-validate}
     properties:
       hibernate:
         format_sql: false
